@@ -18,6 +18,13 @@
     tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
     sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl 
 
+  3. Create a kubernetes cluster with eksctl
+    ```bash
+    eksctl create cluster --name=<cluster-name> --region=<aws-region> --nodes=<number-of-nodes> --node-type=<instance-type>
+    # Example:
+    eksctl create cluster --config-file=cluster-config.yaml
+    eksctl delete cluster --config-file=cluster-config.yaml
+
 
 
 #### kubernetes commands
@@ -41,6 +48,7 @@
 - kubectl config use-context <context-name>
 - kubectl get all -n <namespace-name>
 - kubectl exec -it <pod-name> -c <container-name> -- <command> # Execute command in specific container within a pod
+- kubectl exec -it <pod-name> -- <command> # Execute command in the first container of the pod if multiple containers exist or single container pod
 
 
 
@@ -109,7 +117,7 @@
         - prevent a container from consuming excessive resources and impacting other containers on the same node
         - if a container exceeds its resource limits, it may be throttled or terminated by the kubelet
     - it is important to set appropriate resource requests and limits to ensure optimal performance and stability of applications running in Kubernetes
-    
+
    
     
 
