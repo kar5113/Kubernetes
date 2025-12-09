@@ -125,6 +125,38 @@
     - can be consumed by pods as environment variables, command-line arguments, or mounted as files in a volume
     - useful for managing application settings, feature flags, and other configuration data that may change frequently    
 
+- Secrets:
+    - used to store sensitive information such as passwords, API keys, and certificates
+    - data is stored in an encoded format (base64) to provide a basic level of obfuscation
+    - can be created using YAML files or kubectl commands
+    - can be consumed by pods as environment variables or mounted as files in a volume
+    - help enhance security by keeping sensitive data separate from application code and configuration
+
+- Services:
+They are used to achieve pod communication and load balancing in a Kubernetes cluster and expose applications running on a set of pods. Key points about services:
+    - an abstraction that defines a logical set of pods and a policy to access them
+    - provide stable IP addresses and DNS names for accessing pods, even as the underlying pods are created and destroyed
+    - enable load balancing and service discovery within the cluster
+    - can be exposed externally to allow access from outside the cluster
+    - use selectors to identify the pods that belong to the service based on labels
+There are four main types of services in Kubernetes:
+    - ClusterIP (default):
+        - exposes the service on a cluster-internal IP
+        - accessible only within the cluster
+        - used for communication between pods within the cluster
+    - NodePort:
+        - exposes the service on each node's IP at a static port (the NodePort)
+        - accessible from outside the cluster using <NodeIP>:<NodePort>
+        - useful for development and testing purposes
+    - LoadBalancer:
+        - provisions an external load balancer (if supported by the cloud provider)
+        - exposes the service to the internet using a public IP address
+        - routes traffic to the appropriate pods based on load balancing algorithms
+    - ExternalName:
+        - maps the service to an external DNS name
+        - does not create a traditional service with selectors or endpoints
+        - useful for integrating with external services outside the cluster    
+
    
     
 
