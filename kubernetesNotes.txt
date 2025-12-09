@@ -12,12 +12,30 @@
     # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
     ARCH=amd64
     PLATFORM=$(uname -s)_$ARCH
-
     curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
-
     # (Optional) Verify checksum
     curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
-
     tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
-
     sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl 
+
+
+
+#### kubernetes commands
+- kubectl get nodes    
+- kubectl get pods
+- kubectl get services
+- kubectl get deployments
+- kubectl describe pod <pod-name>
+- kubectl describe service <service-name>
+- kubectl describe deployment <deployment-name>
+- kubectl logs <pod-name>
+- kubectl apply -f <file.yaml>
+- kubectl delete -f <file.yaml>
+- kubectl exec -it <pod-name> -- /bin/bash
+- kubectl scale deployment <deployment-name> --replicas=<number-of-replicas>
+- kubectl port-forward <pod-name> <local-port>:<pod-port>
+- kubectl get namespaces
+- kubectl create namespace <namespace-name>
+- kubectl delete namespace <namespace-name>
+- kubectl config use-context <context-name>
+- kubectl get all -n <namespace-name>
