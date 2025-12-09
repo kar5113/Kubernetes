@@ -12,12 +12,12 @@ spec:
     targetPort: 80 # container port
 
 
----
+--
 apiVersion: v1
 kind: Pod
 metadata:
   name: service-demo-pod
-# Make sure that the labels in the pod match the selector in the service, can give any single or multiple lables.s
+# Make sure that the labels in the pod match the selector in the service.
   labels:
     app: roboshop
     environment: dev
