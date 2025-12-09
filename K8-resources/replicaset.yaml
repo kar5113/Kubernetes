@@ -28,7 +28,7 @@ metadata:
   labels:
     app: roboshop
     environment: dev
-    type: lb
+
 spec:
   replicas: 3
   selector: 
@@ -36,5 +36,15 @@ spec:
       app: roboshop
       environment: dev
       type: lb
+  template:
+    metadata:
+      labels:
+        app: roboshop
+        environment: dev
+        type: lb
+    spec: 
+      containers:
+      - name: nginx
+        image: nginx
 
 
