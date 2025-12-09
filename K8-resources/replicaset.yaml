@@ -34,6 +34,14 @@ spec:
     matchLabels:
       app: roboshop
       environment: dev
-      type: lb
+  template:
+    metadata:
+      labels:
+        app: roboshop
+        environment: qa
+    spec: 
+      containers:
+      - name: nginx
+        image: nginx
 
 
