@@ -38,6 +38,7 @@ spec:
       type: lb
   template:
     metadata:
+      name: nginx-replicaset-demo-pod
       labels:
         app: roboshop
         environment: dev
