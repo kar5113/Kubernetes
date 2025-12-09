@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resources-demo
+spec:
+# resources can be given at pod level or container level even if we have multiple comtainers.
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "300m"
+    limits:
+      memory": "400Mi"
+      cpu: "500m"
+  containers:
+  - name: nginx
+    image: nginx
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+      limits:
+        memory: "100Mi"
+        cpu: "150m"

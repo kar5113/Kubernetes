@@ -87,7 +87,31 @@
     - used to store non-identifying metadata that can be used by tools and libraries
     - typically used for configuration or operational information that is not relevant for selection or grouping
     - unlike labels, annotations are not used for selecting or filtering resources
-    - can be added or modified at any time without affecting the underlying resources    
+    - can be added or modified at any time without affecting the underlying resources 
+    - special characters are allowed in annotation keys and values, making them suitable for storing larger or more complex data   
+## Annotations vs labels
+| Feature        | Labels                                           | Annotations                                     |
+|----------------|--------------------------------------------------|-------------------------------------------------|
+| Purpose        | Used for identifying and grouping resources      | Used for storing non-identifying metadata       |
+| Selection      | Can be used with selectors to filter resources   | Not used for selection or filtering             |
+| Metadata Type  | Key-value pairs                                  | Key-value pairs                                 | 
+| Use Cases      | Organizing resources, managing deployments       | Storing configuration or operational information|
+| Modification   | Can be added or modified at any time             | Can be added or modified at any time            |    
+| Special Chars  | Limited to alphanumeric characters, '-', '_'     | Allows special characters, larger data          |
+
+- pod/container resources:
+    - requests:
+        - specify the minimum amount of CPU and memory resources required for a container to run
+        - used by the Kubernetes scheduler to determine which node can accommodate the pod
+        - ensures that the container has enough resources to function properly
+    - limits:
+        - specify the maximum amount of CPU and memory resources that a container can use
+        - prevent a container from consuming excessive resources and impacting other containers on the same node
+        - if a container exceeds its resource limits, it may be throttled or terminated by the kubelet
+    - it is important to set appropriate resource requests and limits to ensure optimal performance and stability of applications running in Kubernetes
+    
+   
+    
 
 
 #### Errors
