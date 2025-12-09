@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: configMap-demo
+  name: configmap-demo
 spec:
   data:
 #Add your key-value pairs here
@@ -24,4 +24,4 @@ spec:
     image: nginx
     envFrom:
     - configMapRef:
-        name: configMap-demo
+        name: configmap-demo
