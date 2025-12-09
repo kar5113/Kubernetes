@@ -3,7 +3,7 @@ kind: Service
 metadata: 
   name: service-demo-nginx
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector: 
     app: roboshop
     environment: dev
@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: service-demo-np
+  name: service-demo-lb
 # Make sure that the labels in the pod match the selector in the service.
   labels:
     app: roboshop
