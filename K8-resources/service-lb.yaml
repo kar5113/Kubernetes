@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata: 
-  name: service-demo-nginx
+  name: service-demo-lb-nginx
 spec:
   type: LoadBalancer
   selector: 
     app: roboshop
     environment: dev
-    type: frontend
+    type: lb
   ports:
   - protocol: TCP 
     port: 80 # service port or host port
@@ -23,7 +23,7 @@ metadata:
   labels:
     app: roboshop
     environment: dev
-    type: frontend
+    type: lb
 spec: 
   containers:
   - name: nginx
