@@ -21,6 +21,7 @@
 
 
 #### kubernetes commands
+- kubectl api-resources
 - kubectl get nodes    
 - kubectl get pods
 - kubectl get services
