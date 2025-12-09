@@ -140,15 +140,15 @@ They are used to achieve pod communication and load balancing in a Kubernetes cl
     - can be exposed externally to allow access from outside the cluster
     - use selectors to identify the pods that belong to the service based on labels
 There are four main types of services in Kubernetes:
-    - ClusterIP (default):
+    - ClusterIP (default): For internal communication within the cluster
         - exposes the service on a cluster-internal IP
         - accessible only within the cluster
         - used for communication between pods within the cluster
-    - NodePort:
+    - NodePort: For external access to the service
         - exposes the service on each node's IP at a static port (the NodePort)
         - accessible from outside the cluster using <NodeIP>:<NodePort>
         - useful for development and testing purposes
-    - LoadBalancer:
+    - LoadBalancer: For external access with load balancing
         - provisions an external load balancer (if supported by the cloud provider)
         - exposes the service to the internet using a public IP address
         - routes traffic to the appropriate pods based on load balancing algorithms
