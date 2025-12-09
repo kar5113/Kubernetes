@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configMap-demo
+spec:
+  data:
+#Add your key-value pairs here
+    project: roboshop
+    environment: production
+    log_level: verbose
+    
+    game.properties: |
+      enemy.types=aliens,monsters
+      player.maximum-lives=5 

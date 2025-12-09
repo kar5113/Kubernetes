@@ -118,6 +118,13 @@
         - if a container exceeds its resource limits, it may be throttled or terminated by the kubelet
     - it is important to set appropriate resource requests and limits to ensure optimal performance and stability of applications running in Kubernetes
 
+- Config maps:
+    - used to store non-confidential configuration data in key-value pairs
+    - allow separation of configuration from application code, making it easier to manage and update configurations without modifying the application
+    - can be created using YAML files or kubectl commands
+    - can be consumed by pods as environment variables, command-line arguments, or mounted as files in a volume
+    - useful for managing application settings, feature flags, and other configuration data that may change frequently    
+
    
     
 
