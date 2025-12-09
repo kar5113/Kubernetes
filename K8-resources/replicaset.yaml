@@ -38,7 +38,7 @@ spec:
     metadata:
       labels:
         app: roboshop
-        environment: qa
+        environment: dev
     spec: 
       containers:
       - name: nginx
