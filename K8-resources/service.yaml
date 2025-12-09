@@ -11,3 +11,20 @@ spec:
     port: 80 # service port
     targetPort: 80 # container port
 
+
+--
+apiVersion: v1
+kind: pod
+metadata:
+  name: service-demo-pod
+# Make sure that the labels in the pod match the selector in the service, can give any single or multiple lables.s
+  labels:
+    app: roboshop
+    environment: dev
+
+spec: 
+  containers:
+  - name: nginx
+    image: nginx
+
+
