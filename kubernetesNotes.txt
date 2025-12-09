@@ -40,6 +40,7 @@
 - kubectl delete namespace <namespace-name>
 - kubectl config use-context <context-name>
 - kubectl get all -n <namespace-name>
+- kubectl exec -it <pod-name> -c <container-name> -- <command> # Execute command in specific container within a pod
 
 
 
@@ -74,4 +75,32 @@
     - represents a single instance of a running process in a cluster
     - can contain one or more containers that share the same network namespace and storage
     - pods are ephemeral and can be created, destroyed, and recreated as needed
-    - managed by higher-level controllers like Deployments or StatefulSets for scalability and availability    
+    - managed by higher-level controllers like Deployments or StatefulSets for scalability and availability   
+- labels:
+    - key-value pairs attached to Kubernetes objects (e.g., pods, services, deployments)
+    - used for organizing, selecting, and filtering resources
+    - facilitate grouping and managing resources based on specific criteria
+    - can be used in conjunction with selectors to perform operations on a subset of resources
+    - labels are flexible and can be added or modified at any time without affecting the underlying resources
+- Annotations:
+    - key-value pairs attached to Kubernetes objects
+    - used to store non-identifying metadata that can be used by tools and libraries
+    - typically used for configuration or operational information that is not relevant for selection or grouping
+    - unlike labels, annotations are not used for selecting or filtering resources
+    - can be added or modified at any time without affecting the underlying resources    
+
+
+#### Errors
+- CrashLoopBackOff:
+    - indicates that a container in a pod is repeatedly crashing and restarting
+    - common causes include application errors, misconfigurations, or resource constraints
+    - to troubleshoot, check the container logs using `kubectl logs <pod-name>` and inspect the pod description with `kubectl describe pod <pod-name>`
+    - ensure that the container image is correct and that all required dependencies are available
+    - consider adding readiness and liveness probes to monitor the health of the application within the container
+- ImagePullBackOff:
+    - indicates that Kubernetes is unable to pull the specified container image from the container registry
+    - common causes include incorrect image names, missing tags, or authentication issues with private registries
+    - to troubleshoot, check the pod description with `kubectl describe pod <pod-name>` to see detailed error messages related to image pulling
+    - verify that the image name and tag are correct and that the container registry is accessible
+    - if using a private registry, ensure that the necessary image pull secrets are configured in the pod specification
+
