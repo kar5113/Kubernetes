@@ -1,0 +1,12 @@
+apiversion: v1
+kind: Pod
+metadata:
+  name: multicontainer-pod
+
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  - name: almalinux
+    image: almalinux
+    command: ["sleep","100"]

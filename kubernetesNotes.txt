@@ -40,3 +40,38 @@
 - kubectl delete namespace <namespace-name>
 - kubectl config use-context <context-name>
 - kubectl get all -n <namespace-name>
+
+
+
+#### kubernetes resource types
+- Pods
+- Services
+- Deployments
+- ReplicaSets
+- Namespaces
+- ConfigMaps
+- Secrets
+- PersistentVolumes
+- PersistentVolumeClaims
+- StatefulSets
+- DaemonSets
+- Ingress   
+- Jobs
+- CronJobs
+
+
+
+
+#### Kubernetes notes
+- namespace:
+    - used to create multiple virtual clusters within a single physical cluster
+    - useful for separating environments (e.g., development, staging, production) or teams within an organization
+    - resources within a namespace are isolated from those in other namespaces
+    - default namespace is "default"
+    - can create custom namespaces using YAML files or kubectl commands
+- pod: 
+    - smallest and simplest Kubernetes object
+    - represents a single instance of a running process in a cluster
+    - can contain one or more containers that share the same network namespace and storage
+    - pods are ephemeral and can be created, destroyed, and recreated as needed
+    - managed by higher-level controllers like Deployments or StatefulSets for scalability and availability    
