@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostPath-example
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  - name: sidecar
+    image: almalinux
+    volumeMounts:
+    - mountPath: /var/logs # it access the host's /var/logs directory and logs can be shared between pods scheduled on the same node.
+      name: hostpath-volume
+      readOnly: true
+  volumes:
+  - name: hostpath-volume
+    hostPath:
+      path: /var/logs. ## can be any file or directory on the host/node.
+      type: Directory

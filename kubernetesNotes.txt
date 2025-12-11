@@ -175,6 +175,22 @@ There are four main types of services in Kubernetes:
     - provides rollback capabilities, enabling you to revert to a previous version of your application if needed
     - can be created and managed using YAML files or kubectl commands  
 
+- Volumes:
+    - provide persistent storage for pods in a Kubernetes cluster
+    - allow data to persist beyond the lifecycle of individual pods, enabling stateful applications
+    - can be used to share data between containers within the same pod
+    - support various types of storage backends, including local storage, network-attached storage, and cloud-based storage solutions
+    - can be defined in pod specifications and mounted into containers at specified paths
+    - help ensure data durability and availability for applications running in Kubernetes
+
+    - There are several types of volumes in Kubernetes, including:
+        - emptyDir: A temporary directory that is created when a pod is assigned to a node and exists as long as the pod is running. It is useful for sharing data between containers in the same pod. For example , a web server container and a logging container can share log files using an emptyDir volume.
+        - hostPath: Mounts a file or directory from the host node's filesystem into the pod. Useful for accessing host resources or sharing data between pods on the same node.
+        - persistentVolumeClaim: Uses a PersistentVolumeClaim to request storage from a PersistentVolume
+        - configMap: Mounts a ConfigMap as a volume, allowing pods to consume configuration data
+        - secret: Mounts a Secret as a volume, enabling pods to access sensitive information securely
+        - nfs, awsElasticBlockStore, gcePersistentDisk, and others: Support for various external storage systems        
+
 
 
    
@@ -235,6 +251,42 @@ liveness prove vs readiness probe:
 | Security       | Not encrypted, suitable for non-sensitive data | Provides basic obfuscation, suitable for sensitive data |   
 
 when config mapchanged, pods or deployments using it need to be restarted to pick up the changes. Secrets behave similarly. 
+
+
+
+
+
+#### sets 
+
+- Replica set:
+    - ensures that a specified number of pod replicas are running at any given time
+    - monitors the state of pods and creates or deletes pods as needed to maintain the desired number of replicas
+    - provides high availability and fault tolerance for applications by distributing pod replicas across multiple nodes
+    - can be created and managed using YAML files or kubectl commands
+    - often used in conjunction with Deployments, which provide additional features such as rolling updates and rollbacks
+
+- Deployment:
+    - a higher-level abstraction that manages ReplicaSets and provides declarative updates to applications
+    - allows you to define the desired state of your application, including the number of replicas, container images, and update strategies
+    - automatically creates and manages ReplicaSets to ensure that the desired number of pod replicas are running
+    - supports rolling updates, allowing you to update your application with zero downtime by gradually replacing old pods with new ones
+    - provides rollback capabilities, enabling you to revert to a previous version of your application if needed
+    - can be created and managed using YAML files or kubectl commands
+
+- DaemonSets:
+    - ensure that a copy of a specific pod is running on all (or a subset of) nodes in a Kubernetes cluster
+    - commonly used for deploying system-level services such as log collectors, monitoring agents, or network plugins or logging agents.
+    - automatically adds pods to new nodes as they are added to the cluster and removes pods from nodes that are removed
+    - can be created and managed using YAML files or kubectl commands
+    - provide a way to ensure that essential services are consistently available across all nodes in the cluster    
+    - logs are accessed by hostPath volume or DaemonSet pods can forward logs to a centralized logging system
+
+ - StatefulSets:
+    - manage the deployment and scaling of stateful applications in Kubernetes
+    - provide guarantees about the ordering and uniqueness of pod instances
+    - maintain a stable network identity and persistent storage for each pod, even when pods are rescheduled or restarted
+    - commonly used for applications that require stable identities and persistent data, such as databases or distributed systems
+    - can be created and managed using YAML files or kubectl commands   
 
 
 

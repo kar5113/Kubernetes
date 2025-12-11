@@ -40,10 +40,6 @@ spec:
       - name: mysql
         image: kar5113/mysql:v1
         imagePullPolicy: Always
-        env:
-        envFrom:
-        - configMapRef:
-            name: mysql-config
         readinessProbe:
           tcpSocket:
             port: 3306
@@ -54,7 +50,14 @@ spec:
             port: 3306
           initialDelaySeconds: 100
           periodSeconds: 10
-
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /etc/mysql/conf.d/my.cnf
+          subPath: my.cnf
+      volumeMounts:
+      - name: mysql-config-volume
+        configMap:
+          name: mysql-config
 
 ---
 
