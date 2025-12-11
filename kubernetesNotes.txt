@@ -49,6 +49,9 @@
 - kubectl get all -n <namespace-name>
 - kubectl exec -it <pod-name> -c <container-name> -- <command> # Execute command in specific container within a pod
 - kubectl exec -it <pod-name> -- <command> # Execute command in the first container of the pod if multiple containers exist or single container pod
+- kubectl config set-context --current --namespace=roboshop-dev # Set default namespace for current context or use kubens...
+- kubectx <context-name> # Switch between contexts easily using kubectx tool when multiple clusters are used
+- kubens <namespace-name> # Switch between namespaces easily using kubens tool when multiple namespaces are used
 
 
 
@@ -157,6 +160,23 @@ There are four main types of services in Kubernetes:
         - does not create a traditional service with selectors or endpoints
         - useful for integrating with external services outside the cluster    
 
+- Replicasets:
+    - ensure that a specified number of pod replicas are running at any given time
+    - monitor the state of pods and create or delete pods as needed to maintain the desired number of replicas
+    - provide high availability and fault tolerance for applications by distributing pod replicas across multiple nodes
+    - can be created and managed using YAML files or kubectl commands
+    - often used in conjunction with Deployments, which provide additional features such as rolling updates and rollbacks
+
+- Deployment:
+    - a higher-level abstraction that manages ReplicaSets and provides declarative updates to applications
+    - allows you to define the desired state of your application, including the number of replicas, container images, and update strategies
+    - automatically creates and manages ReplicaSets to ensure that the desired number of pod replicas are running
+    - supports rolling updates, allowing you to update your application with zero downtime by gradually replacing old pods with new ones
+    - provides rollback capabilities, enabling you to revert to a previous version of your application if needed
+    - can be created and managed using YAML files or kubectl commands  
+
+
+
    
     
 
@@ -174,4 +194,47 @@ There are four main types of services in Kubernetes:
     - to troubleshoot, check the pod description with `kubectl describe pod <pod-name>` to see detailed error messages related to image pulling
     - verify that the image name and tag are correct and that the container registry is accessible
     - if using a private registry, ensure that the necessary image pull secrets are configured in the pod specification
+
+
+
+## Useful stuff
+
+- liveness and readiness probes:
+    - used to monitor the health and availability of containers within a pod
+    - liveness probes determine if a container is running and healthy; if the probe fails, the container is restarted
+    - readiness probes determine if a container is ready to accept traffic; if the probe fails, the pod is removed from service endpoints
+    - can be configured using various methods such as HTTP requests, TCP socket checks, or command execution
+    - help improve application reliability and availability by ensuring that only healthy containers receive traffic and that unhealthy containers are automatically recovered
+liveness prove vs readiness probe:
+| Feature            | Liveness Probe                               | Readiness Probe                                     |
+|--------------------|----------------------------------------------|-----------------------------------------------------|
+| Purpose            | Checks if the container is alive and healthy | Checks if the container is ready to serve traffic.  |
+| Action on Failure  | Restarts the container                       | Removes the pod from service endpoints              |
+| Use Case           | Detects and recovers from application crashes| Manages traffic routing based on container readiness|
+| Configuration      | Can use HTTP, TCP, or command execution      | Can use HTTP, TCP, or command execution             |
+| Impact on Traffic  | No direct impact on traffic routing          | Directly affects traffic routing to the pod         |
+
+
+
+
+- kubectx and kubens:
+    - kubectx is a command-line tool that simplifies switching between multiple Kubernetes contexts (clusters)
+    - kubens is a command-line tool that simplifies switching between multiple Kubernetes namespaces within a cluster
+    - both tools enhance productivity by allowing users to quickly change their working context or namespace without manually editing the kubeconfig file
+    - can be installed using package managers like Homebrew or by downloading precompiled binaries from their respective GitHub repositories
+    - once installed, users can switch contexts with `kubectx <context-name>` and switch namespaces with `kubens <namespace-name>`
+
+
+- configmap vs secret:
+| Feature        | ConfigMap                                      | Secret                                           |
+|----------------|------------------------------------------------|-------------------------------------------------|
+| Purpose        | Stores non-confidential configuration data     | Stores sensitive information                     |
+| Data Encoding  | Plain text                                     | Base64 encoded                                  |
+| Use Cases      | Application settings, feature flags            | Passwords, API keys, certificates                  |
+| Access Methods | Environment variables, volume mounts           | Environment variables, volume mounts             |
+| Security       | Not encrypted, suitable for non-sensitive data | Provides basic obfuscation, suitable for sensitive data |   
+
+when config mapchanged, pods or deployments using it need to be restarted to pick up the changes. Secrets behave similarly. 
+
+
 

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-dev-deployment
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: frontend
+    environment: dev
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: frontend
+      environment: dev  
+      tier: frontend
+  template:
+    metadata:
+      name: frontend-dev-pod
+      labels:
+        project: roboshop
+        app: frontend
+        environment: dev
+        tier: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: kar5113/frontend:v1  
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:  
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: frontend
+    environment: dev
+    tier: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    project: roboshop
+    app: frontend
+    environment: dev
+    tier: frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+        

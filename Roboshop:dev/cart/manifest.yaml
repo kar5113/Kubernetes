@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart
+  namespace: roboshop-dev
+data:
+  REDIS_HOST: "redis"
+  CATALOGUE_HOST: "catalogue"
+  CATALOGUE_PORT: "8080"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-dev-deployment 
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: cart
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: cart-dev-pod
+      labels:
+        project: roboshop
+        app: cart
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: cart
+        image: kar5113/cart:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: cart
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  
