@@ -1,0 +1,93 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata: 
+  name: roboshop-ebs-sc
+  labels:
+    app: roboshop
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: roboshop-ebs-pvc-dynamic
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: roboshop-ebs-sc
+#   resources:
+#     requests:
+#       storage: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-statefulset
+  labels:
+    app: nginx  
+spec:
+  serviceName: "nginx-headless"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: nginx-storage
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates: # this section is used to create PVCs for each pod in the statefulset and should be done under the statefulset spec like this only not the usual way.
+  - metadata:
+      name: nginx-storage # this name should match with the volumeMounts name in the container spec
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: roboshop-ebs-sc
+      resources:
+        requests:
+          storage: 1Gi
+
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-headless
+  labels:
+    app: nginx
+spec:
+  clusterIP: None
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+

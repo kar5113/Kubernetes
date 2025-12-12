@@ -52,6 +52,7 @@
 - kubectl config set-context --current --namespace=roboshop-dev # Set default namespace for current context or use kubens...
 - kubectx <context-name> # Switch between contexts easily using kubectx tool when multiple clusters are used
 - kubens <namespace-name> # Switch between namespaces easily using kubens tool when multiple namespaces are used
+- kubectl get nodes --show-labels # Show labels of nodes for getting selectors.
 
 
 
@@ -186,7 +187,8 @@ There are four main types of services in Kubernetes:
     - There are several types of volumes in Kubernetes, including:
         - emptyDir: A temporary directory that is created when a pod is assigned to a node and exists as long as the pod is running. It is useful for sharing data between containers in the same pod. For example , a web server container and a logging container can share log files using an emptyDir volume.
         - hostPath: Mounts a file or directory from the host node's filesystem into the pod. Useful for accessing host resources or sharing data between pods on the same node.
-        - persistentVolumeClaim: Uses a PersistentVolumeClaim to request storage from a PersistentVolume
+        - persistent Volume: Represents a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using StorageClasses. It is used to provide persistent storage for pods.
+        - persistentVolumeClaim: Uses a PersistentVolumeClaim to request storage from a PersistentVolume and mount it into a pod. It is dynamically provisioned based on the claim's specifications.
         - configMap: Mounts a ConfigMap as a volume, allowing pods to consume configuration data
         - secret: Mounts a Secret as a volume, enabling pods to access sensitive information securely
         - nfs, awsElasticBlockStore, gcePersistentDisk, and others: Support for various external storage systems        
@@ -253,7 +255,47 @@ liveness prove vs readiness probe:
 when config mapchanged, pods or deployments using it need to be restarted to pick up the changes. Secrets behave similarly. 
 
 
+- EBS 
+    - To mount an EBS volume to a pod, you need to create a PersistentVolume (PV) and a PersistentVolumeClaim (PVC) that references the EBS volume.
+      Then you can mount the PVC to the pod in the pod specification.
+    - EBS volumes are specific to a single availability zone, so ensure that your pods are scheduled in the same zone as the EBS volume.
+    - EBS volumes can be dynamically provisioned using StorageClasses, allowing for automatic creation and management of EBS volumes based on PVC requests.
+    - Install the AWS EBS CSI driver in your Kubernetes cluster to enable dynamic provisioning and management of EBS volumes.
+        kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.53"
+    - EC2 instances (nodes) must have the necessary IAM permissions to access and manage EBS volumes.
+    - Create PV 
 
+- EFS
+    - To mount an EFS volume to a pod, you need to create a PersistentVolume (PV) and a PersistentVolumeClaim (PVC) that references the EFS file system.
+      Then you can mount the PVC to the pod in the pod specification.
+    - EFS volumes are accessible across multiple availability zones, making them suitable for applications that require shared storage.
+    - Install the AWS EFS CSI driver in your Kubernetes cluster to enable dynamic provisioning and management of EFS volumes.
+        kubectl kustomize \
+    "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-2.2" > public-ecr-driver.yaml
+    - EC2 instances (nodes) must have the necessary IAM permissions to access and manage EFS file systems.
+    - Create PV and PVC for EFS and mount it to pods as needed.
+    - Create a security group that allows NFS traffic (port 2049) between the EFS file system and the EC2 instances (nodes) in your Kubernetes cluster.
+
+- EBS vs EFS:
+| Feature               | EBS (Elastic Block Store)                     | EFS (Elastic File System)                     |
+|-----------------------|-----------------------------------------------|-------------------------------------------------|
+| Storage Type          | Block storage                                 | File storage                                   |
+| Accessibility         | Accessible by a single EC2 instance at a time | Accessible by multiple EC2 instances simultaneously |
+| Use Cases             | Databases, file systems, applications requiring low-latency access | Shared file storage, content management systems, home directories |
+| Performance           | High performance for single-instance workloads | Scalable performance for multi-instance workloads |
+| Durability            | Data is replicated within a single availability zone | Data is replicated across multiple availability zones |
+| Cost                  | Generally lower cost for single-instance use cases | Generally higher cost due to multi-instance access and scalability | 
+| Mounting in Pods     | Requires PV and PVC for mounting               | Requires PV and PVC for mounting                 |
+| Dynamic Provisioning | Supported with AWS EBS CSI driver                | Supported with AWS EFS CSI driver                |
+| IAM Permissions      | Required for EC2 instances to manage EBS volumes | Required for EC2 instances to manage EFS file systems |
+| Performance Modes     | General Purpose (gp2, gp3), Provisioned IOPS (io1, io2) | Bursting Throughput, Provisioned Throughput      |
+| Scalability          | Up to 16 TiB per volume                        | Scales up to petabytes automatically            |
+| Backup and Snapshots | Supports snapshots for data backup and recovery | Supports backups through AWS Backup service      |
+| Data Sharing        | Not designed for data sharing between instances | Designed for concurrent access by multiple instances |
+| Integration with AWS Services | Integrates with EC2, RDS, and other services | Integrates with EC2, ECS, EKS, and other services |
+| Performance Consistency | Provides consistent performance for single-instance workloads | Performance may vary based on the number of concurrent connections and workload |
+| Security            | Supports encryption at rest and in transit     | Supports encryption at rest and in transit       |
+| Security groups      | EBS volumes inherit the security groups of the EC2 instance | EFS file systems can be associated with specific security groups |        
 
 
 #### sets 
@@ -272,6 +314,7 @@ when config mapchanged, pods or deployments using it need to be restarted to pic
     - supports rolling updates, allowing you to update your application with zero downtime by gradually replacing old pods with new ones
     - provides rollback capabilities, enabling you to revert to a previous version of your application if needed
     - can be created and managed using YAML files or kubectl commands
+    - It is for stateless applications where any pod can handle any request
 
 - DaemonSets:
     - ensure that a copy of a specific pod is running on all (or a subset of) nodes in a Kubernetes cluster
@@ -287,6 +330,49 @@ when config mapchanged, pods or deployments using it need to be restarted to pic
     - maintain a stable network identity and persistent storage for each pod, even when pods are rescheduled or restarted
     - commonly used for applications that require stable identities and persistent data, such as databases or distributed systems
     - can be created and managed using YAML files or kubectl commands   
+    - It is for stateful applications where each pod has its own identity and storage
+    - A Headless service is mandatory to be created for a statefulset to function properly.
+
+- Headless Services:
+    - a type of Kubernetes service that does not allocate a cluster IP address
+    - used to expose pods directly without load balancing or proxying
+    - commonly used in conjunction with StatefulSets to provide stable network identities for each pod
+    - allows clients to connect directly to individual pod instances using their DNS names
+    - can be created and managed using YAML files or kubectl commands   
+    - useful for stateful applications that require direct access to specific pod instances, such as databases or clustered applications
+    - When a headless service is created, Kubernetes does not assign it a cluster IP address. Instead, it creates DNS records for each pod that matches the service's selector. This allows clients to resolve the DNS name of the headless service to the individual pod IP addresses, enabling direct communication with specific pod instances.
+    - when a headless sdervie is hit, it will give all the pod IPs. It is for data repplication and clustering of stateful applications(like DBs  etc).
+    - It is mandatory to create a headless service for statefulsets. 
+
+
+Deployment vs Statefulset vs Daemonset:
+| Feature               | Deployment                                  | StatefulSet                                   | DaemonSet                                    |
+|-----------------------|---------------------------------------------|-----------------------------------------------|----------------------------------------------|
+| Purpose               | Manages stateless applications               | Manages stateful applications                  | Ensures a pod runs on all or specific nodes |
+| Pod Identity          | Pods are interchangeable                     | Each pod has a unique identity and stable network ID | Pods run on all or specific nodes            |
+| Storage               | Typically uses shared storage or no storage  | Provides stable, persistent storage for each pod | Can use hostPath or other storage types       |
+| Scaling               | Easy to scale up or down                      | Scaling maintains pod identity and order       | Not typically scaled; runs on all nodes         |
+| Update Strategy       | Supports rolling updates and rollbacks       | Supports rolling updates with ordered pod termination | Updates can be applied to all pods simultaneously |
+| Use Cases             | Web servers, APIs, front-end applications | Databases, distributed systems, stateful apps | Log collectors, monitoring agents, network plugins |
+| Network Identity      | Pods share the same network identity         | Each pod has a unique network identity         | Pods share the same network identity          |
+| Pod Scheduling      | Pods can be scheduled on any node            | Pods are scheduled based on their identity and storage | Pods are scheduled on all or specific nodes   |    
+
+
+- Volumes:
+    - provide persistent storage for pods in a Kubernetes cluster
+    - allow data to persist beyond the lifecycle of individual pods, enabling stateful applications
+    - can be used to share data between containers within the same pod
+    - support various types of storage backends, including local storage, network-attached storage, and cloud-based storage solutions
+    - can be defined in pod specifications and mounted into containers at specified paths
+    - help ensure data durability and availability for applications running in Kubernetes
+  - Static provisioning:
+      - An administrator manually creates PersistentVolumes (PVs) in the cluster.
+      - Users create PersistentVolumeClaims (PVCs) to request storage from the available PVs.
+      - The PVC is bound to a matching PV based on size and access modes.
+  - Dynamic provisioning:
+      - Storage class is created by the administrator to define different types of storage (e.g., SSD, HDD) and their parameters.
+      - Users create PVCs without pre-existing PVs.
+      - The cluster automatically provisions a new PV based on the PVC's specifications using StorageClasses.      
 
 
 

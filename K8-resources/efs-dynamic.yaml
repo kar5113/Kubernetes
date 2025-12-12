@@ -1,0 +1,38 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efsscdynamic
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-0820bd4dd4fa98df1 # EFS file system ID
+  directoryPerms: "700"
+  basePath: "/roboshopcatalogue" # optional
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efsscdynamic
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-app
+spec:
+  containers:
+    - name: app
+      image: nginx
+      volumeMounts:
+        - name: persistent-storage
+          mountPath: /usr/share/nginx/html
+  volumes:
+    - name: persistent-storage
+      persistentVolumeClaim:
+        claimName: efs-claim

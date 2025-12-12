@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: static-ebs-pv
+spec:
+  accessModes:
+  - ReadWriteOnce # EBS volumes can be mounted as read-write by a single node
+  capacity:
+    storage: 15Gi # Size of the EBS volume
+  persistentVolumeReclaimPolicy: Delete # Retain the volume after the claim is released, preventing data loss. Recycle is for simple cleanup, and Delete removes the volume.
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: vol-0f3015ec6176cf061 # Replace with your EBS volume ID
+  

@@ -1,0 +1,44 @@
+# SC is creatred by admins to enable dynamic provisioning of PVs
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: roboshop-ebs-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+#reclaimPolicy: Retain # Retain the volume after the claim is released, preventing data loss. Recycle is for simple cleanup, and Delete removes the volume.Default is Delete
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roboshop-ebs-pvc-dynamic
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: roboshop-ebs-sc
+  resources:
+    requests:
+      storage: 4Gi
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ebs-dynamic-pod
+  labels:
+    app: ebs-dynamic-app
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - mountPath: /usr/share/nginx/html
+      name: nginx-html
+
+  volumes:
+  - name: nginx-html
+    persistentVolumeClaim:
+      claimName: roboshop-ebs-pvc-dynamic

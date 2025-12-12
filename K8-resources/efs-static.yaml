@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv-static
+spec:
+  capacity:
+    storage: 5Gi # Size of the volume, just for reference in EFS, EFS is elastic
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "" # to bind statically created PV with PVC, storageClassName should be empty in PV
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0efc0d997a0aeae18 # EFS file system ID
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim-static
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  volumeName: efs-pv-static # to bind statically created PV with PVC, volumeName should be mentioned in PVC
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-pod-static
+spec:
+  containers:
+  - name: app
+    image: nginx
+    volumeMounts:
+    - mountPath: /usr/share/nginx/html
+      name: efs-volume
+  volumes:
+  - name: efs-volume
+    persistentVolumeClaim:
+      claimName: efs-claim-static # PVC created above
