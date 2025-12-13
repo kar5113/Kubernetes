@@ -119,7 +119,7 @@ spec:
         type: Utilization
         averageUtilization: 95
 
-
+---
 #### User
 # 
 apiVersion: v1
@@ -131,6 +131,8 @@ data:
   MONGO_URL: "mongodb://mongodb:27017/catalogue"
   MONGO: "true"
   REDIS_URL: "redis://redis:6379"
+
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -242,7 +244,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 95
-
+---
 #### Cart
 
 apiVersion: v1
@@ -365,7 +367,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 95
-
+---
 #### Shipping
 apiVersion: v1
 kind: ConfigMap
@@ -430,10 +432,10 @@ spec:
           periodSeconds: 10
         resources:
           requests:
-            memory: "150Mi"
-            cpu: "300m"
+            memory: "300Mi"
+            cpu: "400m"
           limits:
-            memory: "250Mi"
+            memory: "300Mi"
             cpu: "400m"
 
 
@@ -491,7 +493,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 95  
-
+---
 #### Payment
 apiVersion: v1
 kind: ConfigMap
