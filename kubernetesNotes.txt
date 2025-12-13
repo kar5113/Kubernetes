@@ -53,6 +53,10 @@
 - kubectx <context-name> # Switch between contexts easily using kubectx tool when multiple clusters are used
 - kubens <namespace-name> # Switch between namespaces easily using kubens tool when multiple namespaces are used
 - kubectl get nodes --show-labels # Show labels of nodes for getting selectors.
+- kubectl taint nodes <node-name> key=value:effect # Add taint to a node so that only pods with matching tolerations can be scheduled on it, others will be repelled
+- kubectl taint nodes node1 key1=value1:NoSchedule- # to remove the taint from the node
+- kubectl taint nodes <node-name> key1=value1:effect- # to remove specific taint from the node
+
 
 
 
@@ -394,7 +398,67 @@ Deployment vs Statefulset vs Daemonset:
   - Dynamic provisioning:
       - Storage class is created by the administrator to define different types of storage (e.g., SSD, HDD) and their parameters.
       - Users create PVCs without pre-existing PVs.
-      - The cluster automatically provisions a new PV based on the PVC's specifications using StorageClasses.      
+      - The cluster automatically provisions a new PV based on the PVC's specifications using StorageClasses. 
 
 
+ Scheduling in Kubernetes:
+  - Kubernetes uses a scheduler to assign pods to nodes based on resource availability and other constraints.
+  - The scheduler considers factors such as CPU and memory requests, node affinity/anti-affinity, taints and tolerations, and custom scheduling policies.
+  - The default scheduler is kube-scheduler, but custom schedulers can also be implemented for specific use cases.
+  - Scheduling decisions are made based on a two-step process: filtering and scoring.
+    - Filtering: The scheduler filters out nodes that do not meet the pod's requirements (e.g., insufficient resources, taints).
+    - Scoring: The scheduler scores the remaining nodes based on various criteria (e.g., resource utilization, affinity rules) and selects the best-fit node for the pod.
+  - Users can influence scheduling decisions by specifying resource requests and limits, node selectors, affinity rules, and tolerations in the pod specification.  
+- Taints and Tolerations:
+    - Taints are applied to nodes to repel certain pods from being scheduled on them.
+    - Tolerations are applied to pods to allow them to be scheduled on nodes with matching taints.
+    - Taints and tolerations work together to control pod placement and ensure that specific workloads are isolated or prioritized on certain nodes.
+    - Common use cases include dedicating nodes for specific workloads, isolating critical applications, or preventing certain pods from running on specific nodes.
+    - Taints can be added to nodes using kubectl commands or defined in node specifications, while tolerations are specified in pod specifications.
+
+    - Adding tolerations to pods allows them to be scheduled on nodes with matching taints, but its not guraranteed to be scheduled only in the tainted node(so use nodeselector), while nodes without the appropriate tolerations will repel those pods.
+    - NoSchedule effect: Pods that do not tolerate the taint will not be scheduled on the node.
+    - PreferNoSchedule effect: The scheduler will try to avoid placing pods that do not tolerate the taint on the node, but it is not guaranteed.
+    - NoExecute effect: Pods that do not tolerate the taint will be evicted from the node if they are already running there. If a pod tolerates the taint, it can continue to run on the node till tolerationSeconds expires, if no tolerationSeconds is set, it can run indefinitely.
+      
+
+    taints vs tolerations:
+| Feature        | Taints                                         | Tolerations                                     |
+|----------------|------------------------------------------------|-------------------------------------------------|
+| Purpose        | Repel pods from being scheduled on nodes       | Allow pods to be scheduled on nodes with matching taints |
+| Applied To    | Nodes                                          | Pods                                            |
+| Use Cases      | Isolating workloads, dedicating nodes          | Allowing specific pods to run on tainted nodes |
+| Configuration  | Added to nodes using kubectl or node specs      | Specified in pod specifications                 |
+| Interaction     | Work together with tolerations to control pod placement | Work together with taints to control pod placement |
+| Example        | Taint a node to repel all pods except those with matching tolerations | Tolerate a specific taint to allow scheduling on tainted nodes |
+| Effect on Scheduling | Prevents pods without matching tolerations from being scheduled on the node | Allows pods with matching tolerations to be scheduled on the node |
+| Impact on Workloads | Helps ensure that specific workloads are isolated or prioritized on certain nodes | Helps ensure that specific workloads can run on nodes with specific taints |
+| Configuration Syntax | `kubectl taint nodes <node-name> key=value:effect` | Specified in pod YAML under `tolerations` field |
+| Examples       | `kubectl taint nodes node1 dedicated=group1:NoSchedule` | `tolerations: - key: "dedicated" operator: "Equal" value: "group1" effect: "NoSchedule"` |    
+
+
+
+- Affinity and Anti-Affinity:
+    - Affinity rules specify preferences for scheduling pods on nodes based on labels, allowing pods to be co-located on the same node or in the same zone.
+    - Anti-affinity rules specify preferences for avoiding scheduling pods on nodes with certain labels, helping to distribute workloads across nodes or zones.
+    - Both affinity and anti-affinity can be defined at the pod level using node affinity (for node selection) or pod affinity/anti-affinity (for co-locating or separating pods).
+    - Affinity and anti-affinity rules can be specified as required (hard constraints) or preferred (soft constraints), influencing the scheduler's decisions without being mandatory.
+    - Common use cases include improving application performance by co-locating related pods, enhancing fault tolerance by distributing pods across failure domains, and optimizing resource utilization by balancing workloads across nodes.
+    - Affinity and anti-affinity rules are defined in the pod specification under the `affinity` field.
+    - Node Affinity: Used to constrain which nodes a pod can be scheduled on based on node labels.
+    - Pod Affinity: Used to co-locate pods on the same node or in the same zone based on pod labels.
+    - Pod Anti-Affinity: Used to avoid co-locating pods on the same node or in the same zone based on pod labels.
+| Feature        | Affinity                                      | Anti-Affinity                                  |
+|----------------|-----------------------------------------------|------------------------------------------------|
+| Purpose        | Specifies preferences for scheduling pods on nodes based on labels | Specifies preferences for avoiding scheduling pods on nodes with certain labels |
+| Types          | Node Affinity, Pod Affinity                     | Pod Anti-Affinity                              |
+| Use Cases      | Co-locating related pods, improving performance | Distributing workloads, enhancing fault tolerance |
+| Configuration  | Defined in pod specification under `affinity` field | Defined in pod specification under `affinity` field |
+| Interaction     | Works together with anti-affinity to control pod placement | Works together with affinity to control pod placement |
+| Effect on Scheduling | Influences scheduler to place pods on preferred nodes or with preferred pods | Influences scheduler to avoid placing pods on certain nodes or with certain pods |
+| Impact on Workloads | Helps optimize resource utilization and application performance | Helps ensure workload distribution and fault tolerance |
+| Configuration Syntax | Specified in pod YAML under `affinity` field | Specified in pod YAML under `affinity` field |
+| Examples       | Node Affinity: `requiredDuringSchedulingIgnoredDuringExecution` | Pod Anti-Affinity: `preferredDuringSchedulingIgnoredDuringExecution` |
+| Pod Affinity: |`requiredDuringSchedulingIgnoredDuringExecution` |
+| Pod Anti-Affinity: | `requiredDuringSchedulingIgnoredDuringExecution` |   
 

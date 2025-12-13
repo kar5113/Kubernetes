@@ -1,0 +1,31 @@
+# a deployment for nginx
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec: 
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec: 
+       nodeSelector:
+       Kubernetes.io/Hostname: <hostname of node from labels> # Node selector to schedule pods on nodes with specific labels, use describe nodes to see node labels and use them here
+       # Any label thats unique to a node can be used here to schedule pods specifically on that node
+       # a taint is added as  kubectl taint nodes <node-name> key1=value1:NoSchedule, use this for tolerations, 
+       tolerations: # Tolerations to allow pods to be scheduled on nodes with matching taints
+        - key: "key1"
+          operator: "Equal" # Options are Equal or Exists
+          value: "value1"
+          effect: "NoSchedule" # Effect can be NoSchedule, PreferNoSchedule or NoExecute
+          #effect: "NoExecute" will evict existing pods on the node without matching tolerations and leaves pods with matching tolerations for eternety unless a tolerationSeconds is specified
+           #tolerationSeconds: 3600 # Optional, only for NoExecute effect, evict the pod after 3600 seconds if it doesnt have matching toleration
+       containers:
+       - name: nginx
+         image: nginx:1.14.2
