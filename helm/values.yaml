@@ -1,0 +1,12 @@
+#Similarly declare any number of sections and variables as needed
+
+deployment: # any variable , later it will be used in kubernetes manifest files
+  replicas: 4 # actual; variable to be changed in manifest files using helm templating
+  imageversion: v2 # actual; variable to be changed in manifest files using helm templating
+
+
+service:
+  type: LoadBalancer
+  port: 80
+
+## Here we have defined variables for deployment and service sections, but those section names can be anything as per our requirement.

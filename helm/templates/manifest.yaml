@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+data:
+  MONGO_DB_URL: mongodb:27017/catalogue
+  MONGO: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue-dev-deployment
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      project: roboshop
+      app: catalogue
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: catalogue-dev-pod
+      labels:
+        project: roboshop
+        app: catalogue
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: catalogue
+        image: kar5113/catalogue:{{ .Values.deployment.imageversion | default "v2"}}
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: catalogue
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  selector:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: {{ .Values.service.port | default 8080 }}
+      targetPort: {{ .Values.service.port | default 8080 }}
+  

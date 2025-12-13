@@ -462,3 +462,91 @@ Deployment vs Statefulset vs Daemonset:
 | Pod Affinity: |`requiredDuringSchedulingIgnoredDuringExecution` |
 | Pod Anti-Affinity: | `requiredDuringSchedulingIgnoredDuringExecution` |   
 
+     - node affinity:
+        - Its an enhanced version of nodeSelector.
+        - allows more expressive rules for pod scheduling based on node labels.
+        - has more operators like In, NotIn, Exists, DoesNotExist, Gt, Lt.
+        - requiredDuringSchedulingIgnoredDuringExecution: Pods must be scheduled on nodes that match the specified label criteria. hard requirement. pod status pending if not matched.
+        - preferredDuringSchedulingIgnoredDuringExecution: Pods prefer to be scheduled on nodes that match the specified label criteria, but it is not mandatory. soft requirement. pod can be scheduled on non-matching nodes if necessary.
+           - multiple preferences can be specified with different weights to influence scheduling decisions. 
+           - the scheduler will try to place the pod on nodes that satisfy the highest-weighted preferences first.
+        - Not<operator>: Used to specify that a node should not have certain labels for the pod to be scheduled there. It is anti-affinity at node level.
+    
+    - pod affinity:
+        - allows pods to be co-located on the same node or in the same zone based on pod labels.
+        - has In, NotIn, Exists, DoesNotExist as operators.
+        - used to improve application performance by placing related pods together.
+        - requiredDuringSchedulingIgnoredDuringExecution: Pods must be scheduled on nodes that already have pods with the specified labels. hard requirement.
+        - preferredDuringSchedulingIgnoredDuringExecution: Pods prefer to be scheduled on nodes that already have pods with the specified labels, but it is not mandatory. soft requirement.
+           - multiple preferences can be specified with different weights to influence scheduling decisions.
+           - the scheduler will try to place the pod on nodes that satisfy the highest-weighted preferences first.
+        - Not<operator>: Used to specify that a pod should not be co-located with certain pods for the pod to be scheduled there. It is anti-affinity at pod level.   
+
+
+
+
+
+#### Helm charts.
+- Helm:
+    - a package manager for Kubernetes that simplifies the deployment and management of applications
+    - uses charts, which are pre-configured packages of Kubernetes resources, to define, install, and upgrade applications
+    - allows users to easily share and distribute applications through Helm repositories
+    - provides features such as templating, versioning, and dependency management for Kubernetes applications
+    - can be used to deploy complex applications with multiple components and configurations using a single command
+    - helps streamline the application lifecycle management process in Kubernetes environments
+- Helm Charts:
+    - a collection of files that describe a related set of Kubernetes resources
+    - typically include templates for Kubernetes manifests, configuration values, and metadata about the chart
+    - can be customized using values files or command-line arguments during installation or upgrade
+    - can be stored in Helm repositories for easy sharing and distribution
+    - allow for easy installation, upgrade, and rollback of applications in Kubernetes clusters
+    - can define dependencies on other charts, enabling the deployment of complex applications with multiple components       
+
+    - Installing Helm:
+        - Download the Helm binary from the official Helm website or GitHub repository.
+        - Extract the binary and move it to a directory in your system's PATH (e.g., /usr/local/bin).
+        - Verify the installation by running `helm version` in your terminal.
+            # curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
+            # chmod 700 get_helm.sh
+            # ./get_helm.sh
+    - Adding Helm Repositories:
+        - Use the `helm repo add` command to add a Helm repository. For example:
+          `helm repo add stable https://charts.helm.sh/stable`
+        - Update the local Helm repository cache using `helm repo update`.
+    - Installing Helm Charts:
+        - Use the `helm install` command to install a Helm chart. For example:
+          `helm install my-release stable/nginx`
+        - You can customize the installation by providing a values file using the `-f` flag or by setting individual values using the `--set` flag.
+    - Managing Helm Releases:
+        - Use the `helm list` command to view installed Helm releases.
+        - Upgrade a release using the `helm upgrade` command. For example:
+          `helm upgrade my-release stable/nginx`
+        - Rollback a release to a previous version using the `helm rollback` command. For example:
+          `helm rollback my-release 1`  
+        - Uninstall a release using the `helm uninstall` command. For example:
+          `helm uninstall my-release`
+        - View the status of a release using the `helm status` command. For example:
+          `helm status my-release`
+
+    - Hemlo commands:
+        - `helm create <chart-name>`: Creates a new Helm chart with the specified name.
+        - `helm lint <chart-path>`: Validates a Helm chart for correctness and best practices.
+        - `helm package <chart-path>`: Packages a Helm chart into a .tgz file for distribution.
+        - `helm search repo <keyword>`: Searches for charts in the configured Helm repositories.
+        - `helm get all <release-name>`: Retrieves all information about a specific Helm release.
+        - `helm history <release-name>`: Displays the revision history of a specific Helm release.
+        - `helm install <chart-name>  Installs a Helm chart with a generated release name.      
+        - `helm install <chart-name> .  Installs a Helm chart 
+        - `helm install <release-name> <chart-name>`: Installs a Helm chart with a specified release name.
+        - `helm upgrade <release-name> <chart-name>`: Upgrades an existing Helm
+        - helm rollback <release-name> <revision-number>: Rolls back a Helm release to a specific revision.
+        - helm list: Lists all installed Helm releases in the current namespace.
+        - helm uninstall <release-name>: Uninstalls a Helm release from the cluster.
+        - helm repo add <repo-name> <repo-url>: Adds a Helm repository to the local configuration.
+        - helm repo update: Updates the local Helm repository cache with the latest charts from the configured
+        - helm search repo <keyword>: Searches for Helm charts in the configured repositories using the specified keyword.
+        - helm show values <chart-name>: Displays the default values for a specified Helm chart.
+        - helm template <chart-name>: Renders the templates of a Helm chart locally without installing it.
+        - helm lint <chart-path>: Validates a Helm chart for correctness and best practices.    
+
+
