@@ -1,0 +1,625 @@
+#### Catalogue
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+data:
+  MONGO_DB_URL: mongodb:27017/catalogue
+  MONGO: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: catalogue
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: catalogue
+      labels:
+        project: roboshop
+        app: catalogue
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: catalogue
+        image: kar5113/catalogue:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: catalogue
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: catalogue
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: catalogue
+    environment: dev
+    tier: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: catalogue
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85 # 70 would be default if not specified or suggested one
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 95
+
+
+#### User
+# 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user
+  namespace: roboshop-dev
+data:
+  MONGO_URL: "mongodb://mongodb:27017/catalogue"
+  MONGO: "true"
+  REDIS_URL: "redis://redis:6379"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: user
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: user
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: user
+      labels:
+        project: roboshop
+        app: user
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: user
+        image: kar5113/user:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: user
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: user
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: user
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: user
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: user
+    environment: dev
+    tier: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: user
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85 # 70 would be default if not specified or suggested one
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 95
+
+#### Cart
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart
+  namespace: roboshop-dev
+data:
+  REDIS_HOST: "redis"
+  CATALOGUE_HOST: "catalogue"
+  CATALOGUE_PORT: "8080"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: cart
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: cart
+      labels:
+        project: roboshop
+        app: cart
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: cart
+        image: kar5113/cart:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: cart
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 10
+          failureThreshold: 3
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cart
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: cart
+    environment: dev
+    tier: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment  
+    name: cart
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85 # 70 would be default if not specified or suggested one
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 95
+
+#### Shipping
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping
+  namespace: roboshop-dev
+data:
+  CART_ENDPOINT: "cart:8080"
+  DB_HOST: "mysql"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping 
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: shipping
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: shipping
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: shipping
+      labels:
+        project: roboshop
+        app: shipping
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: shipping
+        image: kar5113/shipping:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: shipping
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 30
+          failureThreshold: 3
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "150Mi"
+            cpu: "300m"
+          limits:
+            memory: "250Mi"
+            cpu: "400m"
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: shipping
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: shipping
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shipping
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: shipping
+    environment: dev
+    tier: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shipping
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85 # 70 would be default if not specified or suggested one
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 95  
+
+#### Payment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment
+  namespace: roboshop-dev
+data:
+  CART_HOST: "cart"
+  CART_PORT: "8080"
+  USER_HOST: "user"
+  USER_PORT: "8080"
+  RABBITMQ_HOST: "rabbitmq"
+  AMQP_USER: "roboshop"
+  AMQP_PASS: "roboshop123"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: payment
+    environment: dev
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: roboshop
+      app: payment
+      environment: dev  
+      tier: backend
+  template:
+    metadata:
+      name: payment
+      labels:
+        project: roboshop
+        app: payment
+        environment: dev
+        tier: backend
+    spec:
+      containers:
+      - name: payment
+        image: kar5113/payment:v2
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: payment
+        ports:
+        - name: test-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: test-port
+          initialDelaySeconds: 15
+          failureThreshold: 3
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: payment
+    environment: dev
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    project: roboshop
+    app: payment
+    environment: dev
+    tier: backend
+  ports:  
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payment
+  namespace: roboshop-dev
+  labels:
+    project: roboshop
+    app: payment
+    environment: dev
+    tier: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payment
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 85 # 70 would be default if not specified or suggested one
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 95
+  
+  
+
+  

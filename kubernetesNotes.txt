@@ -193,6 +193,28 @@ There are four main types of services in Kubernetes:
         - secret: Mounts a Secret as a volume, enabling pods to access sensitive information securely
         - nfs, awsElasticBlockStore, gcePersistentDisk, and others: Support for various external storage systems        
 
+- Horizontal Pod Autoscaler (HPA):
+    - automatically scales the number of pod replicas in a deployment or replica set based on observed CPU utilization or other select metrics
+    - helps ensure that applications can handle varying levels of traffic and workload by adjusting the number of running pods as needed
+    - can be configured using YAML files or kubectl commands
+    - supports custom metrics in addition to CPU utilization for scaling decisions
+    - improves application availability and performance by dynamically adapting to changing resource demands
+    - requires the Metrics Server to be deployed in the cluster to collect resource usage data
+    - can be created using the `kubectl autoscale` command or by defining an HPA resource in a YAML file
+    - allows you to specify minimum and maximum replica counts, as well as target CPU utilization or custom metrics for scaling decisions
+    - helps optimize resource usage and costs by scaling down when demand is low and scaling up when demand increases
+    - requires proper resource requests and limits to be set on the pods for effective scaling
+
+ - Vertical Pod Autoscaler (VPA):
+    - automatically adjusts the CPU and memory resource requests and limits for containers in pods based on observed usage
+    - helps ensure that applications have the appropriate resources to operate efficiently without over-provisioning or under-provisioning
+    - can be configured using YAML files or kubectl commands
+    - supports three modes: "Off" (no adjustments), "Auto" (automatic adjustments), and "Recreate" (restarts pods to apply new resource settings)
+    - improves application performance and stability by adapting to changing resource demands over time
+    - can be used in conjunction with Horizontal Pod Autoscaler (HPA) for comprehensive scaling strategies
+    - requires the VPA admission controller to be enabled in the cluster for automatic resource adjustments
+    - helps optimize resource usage and costs by ensuring that pods have the right amount of resources based on actual usage patterns   
+
 
 
    
