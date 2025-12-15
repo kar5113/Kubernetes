@@ -26,6 +26,13 @@
     eksctl delete cluster --config-file=cluster-config.yaml
 
 
+  4 . to access the cluster, aws cli should be configured with proper access and secret keys
+    ```bash
+    aws configure
+    # Provide AWS Access Key ID, AWS Secret Access Key, Default region name, Default output format
+    aws eks update-kubeconfig --region <aws-region> --name <cluster-name>  
+
+
 
 #### kubernetes commands
 - kubectl api-resources
@@ -539,14 +546,188 @@ Deployment vs Statefulset vs Daemonset:
         - `helm install <chart-name> .  Installs a Helm chart 
         - `helm install <release-name> <chart-name>`: Installs a Helm chart with a specified release name.
         - `helm upgrade <release-name> <chart-name>`: Upgrades an existing Helm
-        - helm rollback <release-name> <revision-number>: Rolls back a Helm release to a specific revision.
-        - helm list: Lists all installed Helm releases in the current namespace.
-        - helm uninstall <release-name>: Uninstalls a Helm release from the cluster.
-        - helm repo add <repo-name> <repo-url>: Adds a Helm repository to the local configuration.
-        - helm repo update: Updates the local Helm repository cache with the latest charts from the configured
-        - helm search repo <keyword>: Searches for Helm charts in the configured repositories using the specified keyword.
-        - helm show values <chart-name>: Displays the default values for a specified Helm chart.
-        - helm template <chart-name>: Renders the templates of a Helm chart locally without installing it.
-        - helm lint <chart-path>: Validates a Helm chart for correctness and best practices.    
+        - `helm rollback <release-name> <revision-number>`: Rolls back a Helm release to a specific revision.
+        - `helm list`: Lists all installed Helm releases in the current namespace.
+        - `helm uninstall <release-name>`: Uninstalls a Helm release from the cluster.
+        - `helm repo add <repo-name> <repo-url>`: Adds a Helm repository to the local configuration.
+        - `helm repo update`: Updates the local Helm repository cache with the latest charts from the configured
+        - `helm search repo <keyword>`: Searches for Helm charts in the configured repositories using the specified keyword.
+        - `helm show values <chart-name>`: Displays the default values for a specified Helm chart.
+        - `helm template <chart-name>`: Renders the templates of a Helm chart locally without installing it.
+        - `helm lint <chart-path>`: Validates a Helm chart for correctness and best practices.    
+        - `helm install <release-name> <chart-name> -f values-dev.yaml`: Installs a Helm chart with a specified release name using a custom values file for configuration.
+
+
+
+
+#### RBAC 
+- Role-Based Access Control (RBAC):
+    - a method for regulating access to resources in a Kubernetes cluster based on the roles of individual users or groups
+    - allows administrators to define roles with specific permissions and assign those roles to users or groups
+    - helps ensure that users have the appropriate level of access to perform their tasks while maintaining security and compliance
+    - can be configured using YAML files or kubectl commands
+    - supports four main RBAC resources: Role, ClusterRole, RoleBinding, and ClusterRoleBinding
+    - enables fine-grained control over access to Kubernetes resources, such as pods, services, and namespaces
+- RBAC Resources:
+    - Role: Defines a set of permissions within a specific namespace. It specifies what actions (verbs) can be performed on which resources. Namespace level
+    - ClusterRole: Similar to Role, but it applies cluster-wide, allowing permissions to be granted across all namespaces. Cluster level
+    - RoleBinding: Binds a Role to a user or group within a specific namespace, granting them the permissions defined in the Role. Namespace level
+    - ClusterRoleBinding: Binds a ClusterRole to a user or group at the cluster level, granting them the permissions defined in the ClusterRole across all namespaces. Cluster level
+- RBAC Concepts:
+    - Subjects: The users, groups, or service accounts that are granted permissions through RoleBindings or ClusterRoleBindings.
+    - Verbs: The actions that can be performed on resources, such as get, list, create, update, delete, etc.
+    - Resources: The Kubernetes objects that permissions can be granted for, such as pods, services, deployments, etc.
+    - Namespaces: Logical partitions within a Kubernetes cluster that help organize and isolate resources. Roles and RoleBindings are namespace-specific, while ClusterRoles and ClusterRoleBindings are cluster-wide.
+    - Policy Rules: Define the specific permissions granted by a Role or ClusterRole, specifying the verbs and resources that can be accessed.
+    - Aggregation: Allows combining multiple ClusterRoles into a single ClusterRole, simplifying permission management for complex scenarios.
+    - Default Roles: Kubernetes provides several built-in ClusterRoles, such as cluster-admin, admin, edit, and view, which can be used to quickly assign common permission sets to users or groups.
+    - Auditing: RBAC actions can be audited to track who accessed what resources and when, helping with security and compliance monitoring.
+    - Best Practices:
+        - Follow the principle of least privilege by granting only the necessary permissions to users and groups.
+        - Regularly review and update RBAC policies to ensure they align with changing requirements and security practices.
+        - Use namespaces to isolate resources and limit the scope of Roles and RoleBindings.
+        - Leverage ClusterRoles for common permission sets that need to be applied across multiple namespaces.
+        - Document RBAC policies and changes to maintain clarity and accountability within the team.
+        - Test RBAC configurations in a non-production environment before applying them to production clusters.
+        - Use tools like `kubectl auth can-i` to verify permissions for users and service accounts.
+        - Monitor and audit RBAC activities to detect and respond to unauthorized access attempts.
+    - Example RBAC YAML:
+        ```yaml
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          namespace: my-namespace
+          name: pod-reader
+        rules:
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["get", "watch", "list"]
+
+
+#### How to achieve RBAC?
+    -  Lets say a user is created in the system. To provide access to the kubernetes cluster, we need to create a role/clusterrole and rolebinding/clusterrolebinding.
+        -  A user named suresh is created in the system. he is a jr.devops engineer so he only has read permissions.
+        -  Now give IAM permission to suresh to describe a cluster, lets say the Roboshop cluster. [ Cluster describe policy is to be created and attached to the user suresh ]
+        -  Attach the policy to suresh user.
+        -  Now make changes in aws-auth config map to map the IAM user suresh to a kubernetes user suresh.
+        -  Now create a role named roboshop-trainee with read only permissions to pods in default namespace and apply the role. This will be for a specific name space . see role.yaml for reference.    
+        -  Now bind that role to the user suresh by creating a rolebinding and apply it. see rolebinding.yaml for reference.    
+        -  Now take the aws-auth config map from the kubesystem namespace and add the following lines in mapUsers section.{ aws-auth is the configmap whereEKS and IAM are integrated. It is in kube-system namespace.}
+        -  It can be accessed by kubectl get configmap aws-auth -n kube-system -o yaml
+        -  Manually update the configmap with the users and groups that are required.
+        -  Apply it. Now make sure to apply the config map first and then the role and rolebinding.
+
+    -  Lets say Ramesh is the new user and he is a team leader    
+        -  Follow the same steps as above to create the user in IAM and provide cluster describe permissions.
+        -  Now create a role named roboshop-admin with admin permissions to all namespaces and apply the role. see adminrole.yaml for reference.    
+        -  Now create a clusterrole named roboshop-admin with admin permissions to all namespaces and apply the role. see adminrole.yaml for reference.  
+        -  Now bind that role to the user ramesh by creating a rolebinding and apply it. see adminrolebinding.yaml for reference.    
+        -  Now bind that clusterrole to the user ramesh by creating a clusterrolebinding and apply it. see adminrolebinding.yaml for reference.
+        -  Now take the aws-auth config map from the kubesystem namespace and add the following lines in mapUsers section.
+        -  It can be accessed by kubectl get configmap aws-auth -n kube-system -o yaml
+        -  Manually update the configmap with the users and groups that are required.
+        -  Apply it. Now make sure to apply the config map first and then the role and rolebinding.
+
+    -  Lets say we have a users group named roboshop-trainee and all the users in that group should have view permissions to roboshop-dev namespace.
+        -  Create a group named roboshop-trainee in IAM and add all the users to that group.
+        -  Provide cluster describe permissions to that group.
+        -  Now create a role named roboshop-trainee with view permissions to roboshop-dev namespace and apply the role. see grouprole.yaml for reference.    
+        -  Now bind that role to the group roboshop-trainee by creating a rolebinding and apply it. see grouprolebinding.yaml for reference.    
+        -  Now take the aws-auth config map from the kubesystem namespace and add the following lines in mapUsers section.
+        -  It can be accessed by kubectl get configmap aws-auth -n kube-system -o yaml
+        -  Manually update the configmap with the users and groups that are required.
+        -  Apply it. Now make sure to apply the config map first and then the role and rolebinding.
+
+ 
+
+    -  Service account
+        - a special type of Kubernetes account used by pods to authenticate with the Kubernetes API server
+        - allows pods to securely access cluster resources and perform actions on behalf of the application running inside the pod
+        - automatically created for each namespace, with a default service account named "default"
+        - can be customized by creating additional service accounts with specific permissions and roles
+        - used in conjunction with RBAC to control access to cluster resources for pods
+        - can be specified in pod specifications using the `serviceAccountName` field
+        - helps ensure secure communication between pods and the Kubernetes API server, enabling applications to interact with cluster resources safely and efficiently  
+        - OIDC (Open ID Connect) based authentication is used by service accounts. It allows Kubernetes api server to validate user identities via an external identity provider.
+        - Service accounts are associated with a set of credentials (tokens) that are automatically mounted into the pods using the service account.
+        - These tokens are used to authenticate the pod with the Kubernetes API server.
+        - By default, service accounts have limited permissions. To grant specific permissions to a service account, you can create Roles or ClusterRoles and bind them to the service account using RoleBindings or ClusterRoleBindings.     
+        - It can also access other aws services if the IAM role is associated with the service account using IAM Roles for Service Accounts (IRSA) 
+
+        - Steps to create a service account
+            eksctl create iamserviceaccount --name <service-account-name> --namespace <namespace> --cluster <cluster-name> --attach-policy-arn <policy-arn> --approve #can do this too --override-existing-serviceaccounts
+
+    ## Install an OIDC provider in EKS cluster
+        - Use the AWS Management Console, AWS CLI, or eksctl to associate an OIDC provider with your EKS cluster.
+        or eksctl command:
+        ```
+        eksctl utils associate-iam-oidc-provider --region <region> --cluster <cluster-name> --approve
+        ``` 
+        - This step is necessary to enable IAM Roles for Service Accounts (IRSA) in your cluster.   
+        - Create an iam role(with necessary permissions) and attach to the service account with necessary permissions . 
+        - The service account can then be assigned the role using OIDC provider.\
+        - This allows the pods using that service account to access AWS resources securely without needing to manage long-term AWS credentials.
+
+    -  Lets say we have a service account named roboshop-sa in roboshop-dev namespace and it should have view permissions to that namespace.
+        create a secret with secrets manager in aws for example as database password.
+        Create an iam role with necessary permissions to access the secret from secrets manager.
+        Attach a trust relationship to the role for the OIDC provider of the EKS cluster and the service account roboshop-sa in roboshop-dev namespace.
+        -  Follow the same steps as above to create the OIDC provider and iam role.
+        -  Create a service account named roboshop-sa in roboshop-dev namespace. ## created with eksctl, can be done with yaml too or see serviceaccount.yaml for reference.
+        -  the pod with sql is created with the service account roboshop-sa. < by default it uses default service account if not specified >
+        -  Now the pod can access the secret from secrets manager using the iam role attached to the service account.
+
+
+
+#### Ingress Controller and Ingress Resources:
+- Ingress Controller:
+    - By default kubernetes creates a basic load balancer for each service of type LoadBalancer. But when there are multiple services, it is not efficient to create a load balancer for each service. In such cases, Ingress controller is used to manage external access to multiple services using a single load balancer.
+    - a specialized load balancer that manages external access to services within a Kubernetes cluster
+    - responsible for processing Ingress resources and routing incoming traffic to the appropriate backend services based on defined rules
+    - typically deployed as a pod or set of pods within the cluster, often using popular implementations such as NGINX, Traefik, or HAProxy
+    - provides features such as SSL/TLS termination, path-based routing, host-based routing, and load balancing
+    - can be configured using YAML files or kubectl commands
+    - helps simplify the management of external access to services in a Kubernetes environment
+- Ingress Resources:
+    - a Kubernetes resource that defines rules for routing external HTTP and HTTPS traffic to services within the cluster
+    - allows users to specify how incoming requests should be directed based on hostnames, paths, and other criteria
+    - typically used in conjunction with an Ingress Controller to implement the defined routing rules
+    - can be created and managed using YAML files or kubectl commands
+    - provide a way to expose multiple services under a single IP address or hostname, simplifying access
+    - support features such as SSL/TLS termination, path-based routing, and host-based routing
+    - help streamline the management of external access to services in a Kubernetes environment
+- Ingress vs Ingress Controller:
+| Feature               | Ingress                                     | Ingress Controller                          |
+|-----------------------|---------------------------------------------|---------------------------------------------|
+| Purpose               | Defines rules for routing external traffic to services within the cluster | Manages external access to services based on Ingress resources |
+| Type                  | Kubernetes resource                         | Specialized load balancer                    |
+| Functionality         | Specifies routing rules based on hostnames, paths, etc. | Processes Ingress resources and routes traffic accordingly |
+| Deployment            | Created and managed using YAML files or kubectl commands | Deployed as a pod or set of pods within the cluster |
+| Features              | Supports SSL/TLS termination, path-based routing, host-based routing | Provides load balancing, SSL/TLS termination, and routing capabilities |
+| Configuration         | Defined in Ingress resource specifications                  | Configured through Ingress Controller settings and annotations |
+| Use Cases             | Exposing multiple services under a single IP address or hostname | Managing external access to services in a Kubernetes environment | 
+| Interaction            | Works in conjunction with an Ingress Controller to implement routing rules | Processes and enforces the rules defined in Ingress resources |
+- Common Ingress Controllers:
+    - NGINX Ingress Controller: A widely used open-source Ingress Controller based on the NGINX web server, known for its performance and flexibility.
+    - Traefik: A dynamic Ingress Controller that supports automatic service discovery and configuration, making it easy to manage routing rules.
+    - HAProxy Ingress Controller: An Ingress Controller based on the HAProxy load balancer, known for its high performance and reliability.
+    - Istio Ingress Gateway: Part of the Istio service mesh, providing advanced traffic management and security features for Ingress traffic.
+    - Ambassador: An API Gateway and Ingress Controller designed for microservices, offering features such as rate limiting and authentication.
+    - Contour: An Ingress Controller built on Envoy Proxy, providing advanced routing and load balancing capabilities.
+    - GCE Ingress Controller: A Google Cloud-specific Ingress Controller that integrates with Google Cloud Load Balancing services.
+
+    ##with an ALB, the flow is ALB > listner > Rule > target group > service> pod. The ingress controller creates an ALB and manages the routing of traffic to the services based on the ingress rules defined.
+    
+    - To install aws loadbalance rcontroller for EKS cluster: refer for detailed installations steps https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/
+        - install OIDC provider for the EKS cluster if not already done.{ eksctl utils associate-iam-oidc-provider --region <region> --cluster <cluster-name> --approve }
+        - create an iam policy with necessary permissions for the ingress controller.
+        - create an iam role and attach the policy to the role. also attach a trust relationship for the OIDC provider and the service account to be created.
+        - create a service account for the ingress controller in the kube-system namespace and associate the iam role to the service account.
+        - Install drivers 
+        - install the ingress controller using helm or kubectl by specifying the service account created.
+
+   
+
+
 
 

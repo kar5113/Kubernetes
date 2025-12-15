@@ -1,0 +1,9 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: roboshop-dev
+  name: roboshop-trainee
+rules:
+- apiGroups: [""] # "" indicates the core API group(basic resources like pods, services, configmaps, secrets)
+  resources: ["pods"] # other resources: services, configmaps, secrets, deployments, replicasets, persistentvolumeclaims
+  verbs: ["get", "watch", "list"] # other verbs: create, delete, update, patch, deletecollection

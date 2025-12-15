@@ -1,0 +1,52 @@
+
+<create a deployment for app1 in roboshop-dev namespace with 2 replicas using image an example image>
+
+---
+<Create a service for app1 > 
+
+---
+similarly do for app2
+<create a service for app2 >
+---
+<Create a deployment for app2 in roboshop-dev namespace with 2 replicas using image an example image>
+---
+appVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: roboshop-dev
+  annotations: # there are more annotations, refer documentation for more details, aws alb ingress controller guide examples documentation
+
+    alb.ingress.kubernetes.io/listeen-ports: '[{"HTTPS":443}]' # to specify the ports on which the load balancer will listen, create  a certificate in ACM and use that arn here
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:region:account-id:certificate/certificate-id
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/tags: Environment=dev,Project=roboshop
+    alb.ingress.kubernetes.io/group.name: roboshop-ingress-group # if this is given, then another ingress with the same group name will be part of the same alb, no need to vreate two hosts like here, cna be done as a seprarate ingress resource as well
+
+
+spec:
+  ingressClassName: alb
+  rules:
+    - host: app1.kardev.space
+      http:
+        paths:  
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app1service
+                port:
+                  number: 80
+    - host: app2.kardev.space
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: app2service
+              port:
+                number: 80
+
+# after applywing this create a record set in route53 for app1.kardev.space and app2.kardev.space or *.kardev.space to point to the alb dns name

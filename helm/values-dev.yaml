@@ -1,0 +1,5 @@
+## To use this file: helm install <release-name> <chart-name> -f values-dev.yaml
+
+deployment:
+  replicas: 4
+  imageVersion: v4

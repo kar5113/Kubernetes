@@ -1,0 +1,3 @@
+deployment:
+  imageVersion: v2
+  replicas: 2

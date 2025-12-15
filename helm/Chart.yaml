@@ -2,6 +2,6 @@ apiVersion: v2
 name: nginx
 version: 1.0.0 # chart version, can be anything for our documentation purpose
 appVersion: "1.21.6" # app version, can be anything for our version of app diff than chart version
-desscription: A simple nginx helm chart for demonstration purposes # description of the chart
+description: A simple nginx helm chart for demonstration purposes # description of the chart
 type: application # type of the chart, application or library or any other type
 

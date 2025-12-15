@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: roboshop-dev
+  name: roboshop-admin
+rules:
+- apiGroups: ["*"] # "" indicates the core API group(basic resources like pods, services, configmaps, secrets)
+  resources: ["*"] # other resources: services, configmaps, secrets, deployments, replicasets, persistentvolumeclaims
+  verbs: ["*"] # other verbs: create, delete, update, patch, deletecollection
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+# name space is not requires as cluster roles are not namespaced
+  name: roboshop-admin
+rules:
+- apiGroups: ["*"] # "" indicates the core API group(basic resources like pods, services, configmaps, secrets)
+  resources: ["*"] # other resources: services, configmaps, secrets, deployments, replicasets, persistentvolumeclaims, can give access to specific resources.
+  verbs: ["*"] # other verbs: create, delete, update, patch, deletecollection
