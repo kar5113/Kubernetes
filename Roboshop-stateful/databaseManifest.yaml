@@ -131,7 +131,7 @@ metadata:
     environment: dev
     tier: db
 spec:
-  serviceName: mongodb-headless
+  serviceName: mysql-headless
   replicas: 1
   selector:
     matchLabels:

@@ -726,6 +726,51 @@ Deployment vs Statefulset vs Daemonset:
         - Install drivers 
         - install the ingress controller using helm or kubectl by specifying the service account created.
 
+
+
+
+#### Deployment Strategies:
+ 
+- Deployment Strategies:
+    - a set of approaches for updating applications in a Kubernetes cluster while minimizing downtime and ensuring availability
+    - help manage the rollout of new application versions, allowing for controlled updates and rollbacks if necessary
+    - can be configured using Deployment resources in Kubernetes
+    - support various strategies such as Rolling Update, Recreate, Blue-Green Deployment, and Canary Deployment
+    - enable developers and operators to choose the most appropriate strategy based on application requirements and operational constraints
+    - help ensure a smooth transition between application versions, reducing the risk of disruptions to end-users
+- Common Deployment Strategies:
+    - Rolling Update: Gradually replaces old pods with new ones, ensuring that a specified number of pods are always available during the update process. This is the default strategy in Kubernetes.
+    - Recreate: Terminates all existing pods before creating new ones. This strategy may result in downtime but is simpler to implement for certain applications.
+    - Blue-Green Deployment: Maintains two separate environments (blue and green) for the application. The new version is deployed to the inactive environment, and traffic is switched to it once it is verified to be working correctly.
+    - Canary Deployment: Deploys the new version to a small subset of users or pods initially, allowing for testing and validation before rolling it out to the entire user base.
+    - A/B Testing: Similar to Canary Deployment, but focuses on testing different versions of an application with distinct user groups to gather feedback and performance metrics.
+    - Shadow Deployment: Routes a copy of the production traffic to the new version of the application without affecting the live environment, allowing for testing and validation.
+    - Rolling with Pause: Similar to Rolling Update, but allows for pausing the rollout at specific intervals to monitor the new version's performance before proceeding further.
+    - Custom Strategies: Organizations can also implement custom deployment strategies tailored to their specific application needs and operational requirements.
+
+
+### Init containers:
+- Init Containers:
+    - specialized containers that run before the main application containers in a pod
+    - used to perform initialization tasks, such as setting up the environment, preparing data, or performing checks
+    - defined in the pod specification under the `initContainers` field
+    - run sequentially, with each init container completing successfully before the next one starts
+    - help ensure that the main application containers have the necessary prerequisites and configurations before they start running
+    - can be used for tasks such as database migrations, configuration file generation, or waiting for external services to become available
+    - provide a way to separate initialization logic from the main application logic, improving maintainability and clarity
+    - can be implemented using any container image, allowing for flexibility in defining initialization tasks
+    - help improve the reliability and stability of applications by ensuring that they start in a well-defined state
+- Common Use Cases for Init Containers:
+    - Database Migrations: Running database migration scripts to ensure that the database schema is up-to-date before the application starts.
+    - Configuration Generation: Generating configuration files or environment variables based on external inputs or secrets.
+    - Dependency Checks: Verifying that required services or resources are available before starting the main application.
+    - Data Preparation: Downloading or preparing data that the application needs to function correctly.
+    - Security Scans: Performing security checks or vulnerability scans on the application code or dependencies.
+    - Resource Initialization: Setting up necessary resources, such as creating directories or setting permissions.
+    - Network Setup: Configuring network settings or establishing connections to external services.
+    - Custom Initialization Logic: Implementing any other custom logic required to prepare the application environment before startup.
+
+    Refer the mysql module in Docker Roboshop for an example of init containers.   
    
 
 
