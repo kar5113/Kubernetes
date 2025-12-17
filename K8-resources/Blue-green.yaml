@@ -1,0 +1,82 @@
+# a sample deployment file for blue
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blue-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: roboshop
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: roboshop
+        version: blue
+    spec:
+      containers:
+      - name: roboshop-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+---
+
+# now we have an update to the app, so creating a new green deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: roboshop
+      version: green
+  template:
+    metadata:
+      labels:
+        app: roboshop
+        version: green
+    spec:
+      containers:
+      - name: roboshop-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: roboshop-service
+spec:
+  selector:
+    app: roboshop
+    version: blue
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+# 
+
+# To switch traffic to green deployment, update the service selector to version: green
+
+# or for checking , a preview service is created below
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: roboshop-preview-service
+spec:
+  selector:
+    app: roboshop
+    version: green
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+# After validation, update the main service selector to version: green and delete the preview service, the blue deployment can be scaled down or deleted as per requirement depending on rollback needs or criticality of the application.
