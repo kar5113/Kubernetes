@@ -9,7 +9,8 @@ rules:
   verbs: ["*"] # other verbs: create, delete, update, patch, deletecollection
 
 ---
-
+# Cluster role is similar to role but it is not namespaced, it can access resources across all namespaces in the cluster
+# The diff between Role and ClusterRole is only the scope of access (namespaced vs cluster wide)
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

@@ -19,7 +19,7 @@ roleRef:
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
-
+# This cluster role binding allows "jane" to read pods in all namespaces. or cluster wide
 kind: ClusterRoleBinding
 metadata:
   name: admin
