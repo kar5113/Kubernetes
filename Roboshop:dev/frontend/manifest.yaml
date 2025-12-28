@@ -111,7 +111,7 @@ spec:
         livenessProbe:
           httpGet:  
             path: /
-            port: 80
+            port: 8080
           initialDelaySeconds: 10
           failureThreshold: 3
           periodSeconds: 10
@@ -137,7 +137,7 @@ metadata:
     environment: dev
     tier: frontend
 spec:
-  type: LoadBalancer
+  # type: LoadBalancer
   selector:
     project: roboshop
     app: frontend
@@ -147,4 +147,38 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
+
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: roboshop-dev
+  annotations: # there are more annotations, refer documentation for more details, aws alb ingress controller guide examples documentation
+
+    alb.ingress.kubernetes.io/listeen-ports: '[{"HTTPS":443}]' # to specify the ports on which the load balancer will listen, create  a certificate in ACM and use that arn here
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:842747763415:certificate/71d0c8e5-13fe-4e78-987c-39a19d229090
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/tags: Environment=dev,Project=roboshop
+    alb.ingress.kubernetes.io/group.name: roboshop-ingress-group # if this is given, then another ingress with the same group name will be part of the same alb, no need to vreate two hosts like here, cna be done as a seprarate ingress resource as well
+
+
+spec:
+  ingressClassName: alb
+  rules:
+    - host: roboshop-dev.kardev.space
+      http:
+        paths:  
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80 # is the port on which the service is exposed, above listen ports is the port on which alb will listen and it will forward the traffic to the service port
+
+
+
         

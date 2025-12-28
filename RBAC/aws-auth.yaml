@@ -1,5 +1,5 @@
 #### This is a sample aws-auth config map for EKS cluster ####
-
+## To get this config map use the command: kubectl get configmap aws-auth -n kube-system -o yaml
 apiVersion: v1
 data:
   mapRoles: |

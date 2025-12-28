@@ -37,7 +37,7 @@ spec:
               service:
                 name: app1service
                 port:
-                  number: 80
+                  number: 80 # is the port on which the service is exposed, above listen ports is the port on which alb will listen and it will forward the traffic to the service port
     - host: app2.kardev.space
       http:
         paths:
