@@ -723,7 +723,7 @@ Deployment vs Statefulset vs Daemonset:
         - create an iam policy with necessary permissions for the ingress controller.
         - create an iam role and attach the policy to the role. also attach a trust relationship for the OIDC provider and the service account to be created.
         - create a service account for the ingress controller in the kube-system namespace and associate the iam role to the service account.
-        - Install drivers 
+        - Install helm drivers 
         - install the ingress controller using helm or kubectl by specifying the service account created.
     See the documentation for clear instructions.
         - Create an IAM OIDC provider. You can skip this step if you already have one for your cluster.
