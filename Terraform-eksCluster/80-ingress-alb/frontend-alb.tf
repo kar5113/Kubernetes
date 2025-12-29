@@ -37,7 +37,7 @@ resource "aws_lb_listener" "ingress_alb" {
 
 resource "aws_route53_record" "ingress_alb" {
   zone_id = "Z0806995L2997E89SFOF"
-  name    = "roboshop.${var.domain_name}"
+  name    = "*.${var.domain_name}"
   type    = "A"
 
   alias {
