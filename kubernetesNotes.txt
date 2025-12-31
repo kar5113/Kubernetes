@@ -64,7 +64,7 @@
 - kubectl taint nodes node1 key1=value1:NoSchedule- # to remove the taint from the node
 - kubectl taint nodes <node-name> key1=value1:effect- # to remove specific taint from the node
 
-
+- aws eks update-kubeconfig --region <region> --name <cluster-name> # to update kubeconfig for eks cluster
 
 
 #### kubernetes resource types
