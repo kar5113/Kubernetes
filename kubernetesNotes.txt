@@ -718,7 +718,7 @@ Deployment vs Statefulset vs Daemonset:
 
     ##with an ALB, the flow is ALB > listner > Rule > target group > service> pod. The ingress controller creates an ALB and manages the routing of traffic to the services based on the ingress rules defined.
     
-    - To install aws loadbalance rcontroller for EKS cluster: refer for detailed installations steps https://kubernetes-sigs.curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.17.0/docs/install/iam_policy.jsongithub.io/aws-load-balancer-controller/latest/deploy/installation/
+    - To install aws loadbalance rcontroller for EKS cluster: refer for detailed installations steps https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/
         - install OIDC provider for the EKS cluster if not already done.{ eksctl utils associate-iam-oidc-provider --region <region> --cluster <cluster-name> --approve }
         - create an iam policy with necessary permissions for the ingress controller.
         - create an iam role and attach the policy to the role. also attach a trust relationship for the OIDC provider and the service account to be created.
@@ -758,6 +758,10 @@ Deployment vs Statefulset vs Daemonset:
             --override-existing-serviceaccounts \
             --region <region-code> \
             --approve
+
+            Then add eks chart repo
+
+            Then load balancer controller installation using helm
 
 
 
@@ -803,7 +807,43 @@ Deployment vs Statefulset vs Daemonset:
     - Custom Initialization Logic: Implementing any other custom logic required to prepare the application environment before startup.
 
     Refer the mysql module in Docker Roboshop for an example of init containers.   
+
+
+#### Upgrading eks cluster :
+- To upgrade an EKS cluster, you can use the AWS Management Console, AWS CLI, or eksctl command-line tool. Here are the general steps to upgrade an EKS cluster using eksctl:
+    1. Check the current version of your EKS cluster:
+        ```
+        eksctl get cluster --name <cluster-name>
+        ```
+    2. Review the available EKS versions and choose the desired version to upgrade to.
+    3. Update the EKS cluster using eksctl:
+        ```
+        eksctl upgrade cluster --name <cluster-name> --version <new-version>
+        ```
+    4. Monitor the upgrade process and ensure that the cluster is successfully upgraded.
+    5. After the cluster upgrade, you may also need to upgrade the worker nodes to match the new cluster version. You can do this by updating the node group:
+        ```
+        eksctl upgrade nodegroup --cluster <cluster-name> --name <node-group-name> --version <new-version>
+        ```
+    6. Verify that the worker nodes are successfully upgraded and running the new version.
+    7. Test your applications and workloads to ensure they are functioning correctly after the upgrade.
+    8. Review and update any custom configurations or add-ons that may be affected by the upgrade.
+    9. Document the upgrade process and any changes made for future reference.
+
+
+  ## using blue green srategy.
+    - first create a new node group lets say green with old version or new version of eks cluster.
+    - then upgrade the eks cluster 
+    - then upgrade the green node group to match the new eks cluster version
+    - then switch the workloads from blue node group to green node group by cordoning and draining the blue node group.
+    - then delete the blue node group if not needed. 
+    - edit firewalls/security groups if needed.
+    - Steps to switch workloads from blue node group to green node group:       
    
+    - cordon blue node brougp > `kubectl cordon <blue-node-name>` | # means mark the node as unschedulable so that no new pods are scheduled on it.
+    - untaint green nodes before draining blue node group > `kubectl taint nodes <green-node-name> upgrade=true:NoSchedule-` | # means remove the taint from the green nodes so that pods can be scheduled on them.
+    - drain blue node group > `kubectl drain <blue-node-name> --ignore-daemonsets --delete-local-data --delete-emptydir-data` |  # means evict all the pods from the node except daemonsets and delete local data.
+    - verify the workloads are running on green node group > `kubectl get nodes -o wide`   # means to check the nodes and their status.
 
 
 
