@@ -1,0 +1,93 @@
+# An example for network policy
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: "true"
+    ports:
+    - protocol: TCP
+      port: 80
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+  labels:
+    access: "true" # to allow this pod to access nginx pod based on network policy
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: ["sleep", "3600"]
+
+# Here the network policy allows only pods with label access:true to access nginx pod on port 80.
+# So busybox pod can access nginx pod but other pods without that label cannot access nginx pod.
+
+---
+# This pod will be denied access to nginx pod as it does not have the required label
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-deny
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: ["sleep", "3600"]  
+
+---
+# To control egress traffic, we can use policyTypes: Egress and define egress rules similarly.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-egress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Egress
+  egress: [] # empty egress rules means deny all egress traffic from selected pods or 
+# we can define specific egress rules here to allow certain traffic for example:
+#  egress:
+#  - to:
+#    - ipBlock:
+#        cidr:  <allowed-ip-range>
+#    ports:
+#    - protocol: TCP
+#      port: 53
+
+
+# Note: Network policies require a network plugin that supports them. Ensure your Kubernetes cluster is set up with such a plugin.
+# Also, by default, if no network policy is applied, all pods can communicate with each other.
+# Once a network policy is applied to a pod, it will deny all traffic by default except what is explicitly allowed in the policy.
+# So be careful while applying network policies in a production environment.
+# Test the network policy by exec into busybox pod and trying to curl nginx pod IP on port 80.
+

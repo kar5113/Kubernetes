@@ -62,6 +62,8 @@ spec:
 # 
 
 # To switch traffic to green deployment, update the service selector to version: green
+# using kubectl command
+# kubectl patch svc roboshop-service -p '{"spec":{"selector":{"app":"roboshop","version":"green"}}}'
 
 # or for checking , a preview service is created below
 ---

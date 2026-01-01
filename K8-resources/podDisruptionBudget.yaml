@@ -1,0 +1,33 @@
+# Example for PDB
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: myapp-pdb
+spec:
+  minAvailable: 2 # minimum number of pods that should be available
+  selector:
+    matchLabels:
+      app: myapp
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod-1
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: myapp-container
+    image: nginx  
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod-2
+  labels:
+    app: myapp  
+spec:
+  containers:
+  - name: myapp-container
+    image: nginx  
+

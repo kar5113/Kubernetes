@@ -806,7 +806,7 @@ Deployment vs Statefulset vs Daemonset:
     - Network Setup: Configuring network settings or establishing connections to external services.
     - Custom Initialization Logic: Implementing any other custom logic required to prepare the application environment before startup.
 
-    Refer the mysql module in Docker Roboshop for an example of init containers.   
+    Refer the mysql module in Docker Roboshop for an example of init containers.  in daws86 repo. 
 
 
 #### Upgrading eks cluster :
@@ -830,7 +830,7 @@ Deployment vs Statefulset vs Daemonset:
     8. Review and update any custom configurations or add-ons that may be affected by the upgrade.
     9. Document the upgrade process and any changes made for future reference.
 
-
+    # refer session 70,71,72 notes for more details. regarding init containers also.
   ## using blue green srategy.
     - first create a new node group lets say green with old version or new version of eks cluster.
     - then upgrade the eks cluster 
@@ -844,6 +844,132 @@ Deployment vs Statefulset vs Daemonset:
     - untaint green nodes before draining blue node group > `kubectl taint nodes <green-node-name> upgrade=true:NoSchedule-` | # means remove the taint from the green nodes so that pods can be scheduled on them.
     - drain blue node group > `kubectl drain <blue-node-name> --ignore-daemonsets --delete-local-data --delete-emptydir-data` |  # means evict all the pods from the node except daemonsets and delete local data.
     - verify the workloads are running on green node group > `kubectl get nodes -o wide`   # means to check the nodes and their status.
+
+
+
+    ## VPC CNI:
+    - VPC CNI (Container Network Interface):
+        - a networking plugin for Kubernetes that enables pods to have direct access to the underlying VPC (Virtual Private Cloud) network
+        - allows pods to receive IP addresses from the VPC subnet, enabling seamless communication with other resources in the VPC
+        - provides high-performance networking by leveraging the native VPC networking capabilities
+        - supports features such as security groups, network policies, and VPC peering
+        - can be configured using ConfigMap and environment variables
+        - helps ensure that pods can communicate with other AWS services and resources securely and efficiently
+        - commonly used in Amazon EKS (Elastic Kubernetes Service) clusters to provide networking for pods
+        - allows for better integration with AWS services, such as load balancers and NAT gateways
+        - helps improve the scalability and reliability of Kubernetes applications running in AWS environments
+    The number of ip addresses depends on the instance type of the node. Each instance type has a maximum number of ENIs and IP addresses per ENI. The total number of IP addresses available for pods on a node is determined by the formula:
+        Total IP addresses = (Number of ENIs) * (IP addresses per ENI - 1) [ ENI > Elastic Network Interface ]
+    The "-1" accounts for the primary IP address assigned to the ENI itself.
+    For example, if a node is of instance type t3.medium, which supports 3 ENIs and 6 IP addresses per ENI, the total number of IP addresses available for pods would be:
+        Total IP addresses = 3 * (6 - 1) = 15
+    Therefore, a t3.medium node can support up to 15 pods with unique IP addresses.    
+
+
+#### Network policy:
+- Network Policy:
+    - a Kubernetes resource that defines rules for controlling network traffic between pods and services within a cluster
+    - allows administrators to specify how groups of pods are allowed to communicate with each other and with external resources
+    - helps enhance security by restricting traffic flow based on defined policies
+    - can be created and managed using YAML files or kubectl commands
+    - supports features such as ingress and egress rules, pod selectors, and namespace selectors
+    - enables fine-grained control over network communication, allowing for isolation and segmentation of workloads
+    - helps prevent unauthorized access and mitigate potential security threats within the cluster
+    - can be used to enforce compliance with organizational security policies and best practices
+    - works in conjunction with Kubernetes networking plugins to implement the defined policies
+  - Common Use Cases for Network Policies:
+    - Isolating Sensitive Workloads: Restricting communication between sensitive pods and other parts of the cluster.
+    - Limiting Access to Services: Controlling which pods can access specific services within the cluster.
+    - Enforcing Compliance: Implementing network policies to meet regulatory and organizational security    
+        requirements.
+    - Segmentation of Environments: Creating separate network segments for different environments (e.g.,
+        development, staging, production) within the same cluster.
+    - Preventing Lateral Movement: Restricting pod-to-pod communication to minimize the risk of lateral movement in case of a security breach.
+    - Controlling Egress Traffic: Defining rules for outbound traffic from pods to external resources.
+    - Enhancing Security Posture: Implementing network policies as part of a broader security strategy for Kubernetes clusters.
+  - Example Network Policy YAML:
+      refer  networkPlolicy.yaml 
+
+#### Pod disruption budget:
+- Pod Disruption Budget (PDB):
+    - a Kubernetes resource that defines the minimum number or percentage of pods that must remain available during voluntary disruptions.
+    - It is minimum number of pods that should be available during maintenance activities.
+    - helps manage and limit the impact of voluntary disruptions, such as node maintenance or scaling operations
+    - helps ensure application availability and stability during maintenance activities, such as node upgrades or   scaling operations
+    - allows administrators to specify constraints on pod disruptions, preventing excessive downtime
+    - can be created and managed using YAML files or kubectl commands
+    - supports features such as minAvailable and maxUnavailable settings to control pod availability
+    - enables fine-grained control over pod disruptions, allowing for better management of application uptime
+    - helps prevent service outages and maintain user experience during planned maintenance
+    - works in conjunction with Kubernetes controllers to enforce the defined disruption budgets
+    - can be used to improve the reliability and resilience of applications running in Kubernetes clusters
+    - To set up a Pod Disruption Budget, you need to define the minimum number or percentage of pods that must remain available during voluntary disruptions. This is done using the `minAvailable` or `maxUnavailable` fields in the PDB specification.    
+- Common Use Cases for Pod Disruption Budgets:
+    - Node Upgrades: Ensuring that a minimum number of pods remain available during node maintenance or upgrades.
+    - Scaling Operations: Controlling pod availability during scaling activities to prevent service disruptions.
+    - Rolling Updates: Maintaining application availability during rolling updates of deployments or stateful sets.
+    - Maintenance Windows: Defining disruption budgets for planned maintenance activities to minimize downtime.
+    - High Availability Applications: Implementing PDBs for critical applications to ensure continuous availability.
+    - Disaster Recovery: Using PDBs as part of a disaster recovery strategy to maintain application uptime.
+    - Compliance Requirements: Meeting organizational or regulatory requirements for application availability.
+- Example Pod Disruption Budget YAML:
+    refer podDisruptionBudget.yaml
+
+  ## > pods in same will have issues with PDB as they will be evicted together. So use anti affinity to spread the pods across nodes.
+     > Pod topology constraints or anti affinity can be used to ensure that pods are distributed across different nodes or zones, reducing the risk of simultaneous disruptions.
+     > refer documentation for more details.  
+
+
+
+
+#### #### K8 Architecture Components:
+- Kubernetes Architecture Components:
+    - Master Node Components:
+        - API Server: The central management component that exposes the Kubernetes API and serves as the entry  point for all administrative tasks.
+        - etcd: A distributed key-value store that stores the cluster's configuration data and state.
+        - Controller Manager: A component that runs various controllers to manage the state of the cluster, such as node management, replication, and endpoint management.
+            - Node Controller: Responsible for monitoring the health of nodes and managing their lifecycle.
+            - Replication Controller: Ensures that the desired number of pod replicas are running at all times.
+            - Endpoint Controller: Manages the endpoints for services, ensuring that they are correctly mapped to the appropriate pods.
+            - Cloud Controller Manager: Integrates Kubernetes with cloud provider APIs to manage resources such as load balancers, storage, and networking.
+            - Cluster Controller: Manages cluster-wide resources and ensures the overall health of the cluster.
+            - service Account & Token Controllers: Manage service accounts and their associated tokens for authentication and authorization.
+            - job Controller: Manages the execution of batch jobs within the cluster.
+            - Node Lifecycle Controller: Monitors the lifecycle of nodes and takes action based on their status.
+            - Resource Quota Controller: Enforces resource quotas for namespaces to limit resource consumption.
+            - DaemonSet Controller: Manages DaemonSets, ensuring that a copy of a pod runs on all or selected nodes.
+            - Endpoint Slice Controller: Manages EndpointSlices, which provide a scalable way to track network endpoints for services.
+            - StatefulSet Controller: Manages StatefulSets, which are used for stateful applications that require stable network identities and persistent storage.
+            - Horizontal Pod Autoscaler Controller: Automatically scales the number of pod replicas based on observed CPU utilization or other metrics.
+            - Backup Controller: Manages backup and restore operations for cluster resources.
+            - Certificate Controller: Manages TLS certificates for secure communication within the cluster.
+            - Service Controller: Manages services and their associated load balancers.
+        - Scheduler: Responsible for assigning pods to nodes based on resource availability and other constraints.
+    - Worker Node Components:
+        - Kubelet: An agent that runs on each worker node, responsible for managing the lifecycle of pods and containers.
+        - Kube-Proxy: A network proxy that runs on each worker node, responsible for maintaining network rules and facilitating communication between pods and services.
+        - Container Runtime: The software responsible for running containers on the worker nodes, such as Docker, containerd, or CRI-O.
+    - Add-ons:
+        - DNS: A cluster-wide DNS service that provides name resolution for services and pods.
+        - Dashboard: A web-based user interface for managing and monitoring the Kubernetes cluster.
+        - Ingress Controller: A component that manages external access to services within the cluster, typically using HTTP/HTTPS.
+        - Monitoring and Logging: Tools and services for collecting and analyzing metrics and logs from the cluster and its applications.
+    - Networking:
+        - CNI (Container Network Interface): A set of specifications and libraries for configuring network interfaces in Linux containers.
+        - Service Mesh: An infrastructure layer that manages service-to-service communication, providing features such as load balancing, service discovery, and security.
+    - Storage:
+        - Persistent Volumes (PV): A cluster-wide resource that provides persistent storage for pods.   
+        - Persistent Volume Claims (PVC): A request for storage by a pod, which binds to a PV.
+        - Storage Classes: A way to define different types of storage with varying performance and availability characteristics.
+    - Security:
+        - RBAC (Role-Based Access Control): A mechanism for controlling access to cluster resources based on user roles and permissions.
+        - Network Policies: Rules that define how pods can communicate with each other and with external resources.
+        - Secrets: A way to store and manage sensitive information, such as passwords and API keys, within the cluster.
+    - Cluster Management:
+        - kubectl: The command-line tool for interacting with the Kubernetes API and managing cluster resources.
+        - Helm: A package manager for Kubernetes that simplifies the deployment and management of applications and services within the cluster.
+        - Operators: Custom controllers that extend Kubernetes functionality to manage complex applications and services.
+             
 
 
 

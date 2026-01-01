@@ -1,0 +1,129 @@
+# This is example for topology spread constraints
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-a
+  labels:
+    app: myapp
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway # this pod will be scheduled even if it violates the topology spread constraint
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-b
+  labels:
+    app: myapp
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: PreferNoSchedule # this pod will be scheduled even if it violates the topology spread constraint, but scheduler will try to avoid that
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-c
+  labels:
+    app: myapp  
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: NoSchedule # this pod will not be scheduled if it violates the topology spread constraint
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx  
+
+---
+#Examole with multiple topology spread constraints
+# Here the pod will be spread across both node hostnames and zones
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-d
+  labels:
+    app: myapp  
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: myapp
+  - maxSkew: 1
+    topologyKey: failure-domain.beta.kubernetes.io/zone
+    whenUnsatisfiable: PreferNoSchedule
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx  
+---
+# Here the pod will be spread across zones only
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-e
+  labels:
+    app: myapp  
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: failure-domain.beta.kubernetes.io/zone
+    whenUnsatisfiable: NoSchedule
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx
+
+---
+# Example with node antia affinity and topology spread constraints
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod-f
+  labels:
+    app: myapp  
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: disktype
+            operator: In
+            values:
+            - ssd
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: NoSchedule
+    labelSelector:
+      matchLabels:
+        app: myapp
+  containers:
+  - name: myapp-container
+    image: nginx
