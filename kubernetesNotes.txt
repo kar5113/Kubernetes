@@ -557,6 +557,8 @@ Deployment vs Statefulset vs Daemonset:
         - `helm lint <chart-path>`: Validates a Helm chart for correctness and best practices.    
         - `helm install <release-name> <chart-name> -f values-dev.yaml`: Installs a Helm chart with a specified release name using a custom values file for configuration.
         - `helm upgrade --install <release-name> <chart-name> -f values-prod.yaml`: Upgrades an existing Helm release or installs it if it doesn't exist, using a custom values file for configuration.
+        - `helm upgrade <chart-name> -f values-dev.yaml`: Installs a Helm chart with a specified release name using a custom values file for configuration.
+        - `helm upgrade <release-name> <chart-name> -f values-prod.yaml --atomic --wait --timeout 5m`: Upgrades an existing Helm release with a specified release name using a custom values file for configuration. The `--atomic` flag ensures that the upgrade is rolled back if it fails, the `--wait` flag waits for all resources to be in a ready state before marking the upgrade as successful, and the `--timeout 5m` flag sets a timeout of 5 minutes for the upgrade process to complete.
 
 
 
