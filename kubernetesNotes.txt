@@ -556,6 +556,7 @@ Deployment vs Statefulset vs Daemonset:
         - `helm template <chart-name>`: Renders the templates of a Helm chart locally without installing it.
         - `helm lint <chart-path>`: Validates a Helm chart for correctness and best practices.    
         - `helm install <release-name> <chart-name> -f values-dev.yaml`: Installs a Helm chart with a specified release name using a custom values file for configuration.
+        - `helm upgrade --install <release-name> <chart-name> -f values-prod.yaml`: Upgrades an existing Helm release or installs it if it doesn't exist, using a custom values file for configuration.
 
 
 
