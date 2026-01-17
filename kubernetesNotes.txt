@@ -167,10 +167,26 @@ There are four main types of services in Kubernetes:
         - provisions an external load balancer (if supported by the cloud provider)
         - exposes the service to the internet using a public IP address
         - routes traffic to the appropriate pods based on load balancing algorithms
+    - Headless:
+        - does not allocate a cluster IP address
+        - used to expose pods directly without load balancing or proxying
+        - commonly used in conjunction with StatefulSets to provide stable network identities for each pod
+        - allows clients to connect directly to individual pod instances using their DNS names    
     - ExternalName:
         - maps the service to an external DNS name
         - does not create a traditional service with selectors or endpoints
-        - useful for integrating with external services outside the cluster    
+        - useful for integrating with external services outside the cluster
+
+        apiVersion: v1
+        kind: Service
+        metadata:
+            name: external-db
+            namespace: default
+        spec:
+            type: ExternalName
+            externalName: db-prod.company.com  
+
+        Here the URL is my external db, now i can access the db using the service name instead of the db url, it used kubernetes internal DNS to resolve the service name to the external URL.      
 
 - Replicasets:
     - ensure that a specified number of pod replicas are running at any given time
